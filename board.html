@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+  board.html — the committee board
+
+  What this page is:
+  The platform's home page once a delegate is signed in. It shows who is
+  seated in the committee, and every post made so far — newest first.
+  Clicking a post opens it on its own page (post.html). Writing a new
+  post happens on its own page too (write.html).
+
+  Only reachable by a logged-in delegate. Behaviour lives in board.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — Committee Board</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer, not just ones with Rockwell installed. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<!-- "is-loading" hides the page until we know who is logged in, so a
+     logged-out visitor never glimpses the board before being sent to
+     the login page. -->
+<body class="is-loading">
+  <div class="page">
+
+    <!-- TOP BAR — same on every page, so a delegate always knows who
+         they are signed in as and can move to the write page. -->
+    <nav class="topbar">
+      <span class="topbar-brand">BridgeMUN</span>
+
+      <div class="topbar-links">
+        <a class="topbar-link is-current" href="board.html">Board</a>
+        <a class="topbar-link" href="write.html">Write</a>
+      </div>
+
+      <div class="topbar-user">
+        <span class="topbar-name" id="navDelegateName"></span>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+        <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+      </div>
+    </nav>
+
+    <!-- PAGE HEADER — the committee, and the topic under debate. -->
+    <header class="committee-header">
+      <div class="header-inner">
+        <svg class="emblem" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" stroke="#c9a227" stroke-width="1.4"/>
+          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#c9a227" stroke-width="1.1"/>
+          <path d="M15 32h34M18 23h28M18 41h28" stroke="#c9a227" stroke-width="1.1"/>
+          <path d="M20 52a24 24 0 0 1-8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M44 52a24 24 0 0 0 8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+
+        <div>
+          <p class="platform-name">BridgeMUN</p>
+          <h1 class="committee-name">United Nations Security Council</h1>
+          <p class="committee-topic"><strong>Topic:</strong> Regulation of Autonomous Weapons</p>
+        </div>
+      </div>
+
+      <div class="header-meta">
+        <span class="meta-item is-live"><span class="status-dot"></span> Live &mdash; Session in Progress</span>
+        <span class="meta-item" id="headerSeats"></span>
+      </div>
+    </header>
+
+    <div class="room">
+
+      <!-- ROSTER — every seat, and who holds it. Drawn by board.js. -->
+      <div class="roster-column">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Delegates</h2>
+            <span class="panel-count" id="delegateCount"></span>
+          </div>
+          <ul class="delegate-list" id="delegateList"></ul>
+
+          <!-- The AI delegate's opening speech: one click posts it to
+               the board like any other delegate's post. -->
+          <div class="controls">
+            <button class="speech-button" id="aiSpeechButton" type="button">
+              Generate AI Opening Speech
+            </button>
+            <span class="controls-note">The AI delegate holds the United States seat.</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- THE POSTS THEMSELVES — newest first, drawn by board.js. -->
+      <div class="main-column">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Posts</h2>
+            <span class="panel-count" id="postCount"></span>
+          </div>
+
+          <ul class="post-list" id="postList"></ul>
+        </section>
+      </div>
+
+    </div>
+
+    <p class="footnote">BridgeMUN · Prototype</p>
+  </div>
+
+  <script type="module" src="board.js"></script>
+</body>
+</html>

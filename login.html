@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+  login.html — the door into BridgeMUN
+
+  What this page is:
+  Where a student with an existing account logs back in. A student who
+  does not have one yet is pointed to signup.html.
+
+  The behaviour for this page lives in login.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — Delegate Login</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer, not just ones with Rockwell installed. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="auth-page">
+
+  <main class="auth-card">
+
+    <!-- The emblem and title, matching every other page so they all
+         read as one platform. -->
+    <div class="auth-brand">
+      <svg class="emblem" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <circle cx="32" cy="32" r="17" stroke="#c9a227" stroke-width="1.4"/>
+        <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#c9a227" stroke-width="1.1"/>
+        <path d="M15 32h34M18 23h28M18 41h28" stroke="#c9a227" stroke-width="1.1"/>
+        <path d="M20 52a24 24 0 0 1-8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M44 52a24 24 0 0 0 8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p class="platform-name">BridgeMUN</p>
+      <h1 class="auth-title">Delegate Login</h1>
+      <p class="auth-subtitle">United Nations Security Council · Regulation of Autonomous Weapons</p>
+    </div>
+
+    <!-- Where errors and confirmations appear. Empty until needed. -->
+    <p class="notice" id="notice"></p>
+
+    <!-- LOG IN: for a delegate who already has an account. -->
+    <form class="auth-form" id="loginForm">
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input type="email" id="loginEmail" autocomplete="email" required>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </label>
+
+      <button class="btn btn-primary btn-block" type="submit">Log in</button>
+    </form>
+
+    <p class="auth-switch">Need a delegate account? <a href="signup.html">Sign up</a></p>
+
+    <p class="auth-footnote">BridgeMUN · Prototype</p>
+  </main>
+
+  <!-- type="module" lets this file import the shared code above. -->
+  <script type="module" src="login.js"></script>
+</body>
+</html>

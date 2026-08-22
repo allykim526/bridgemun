@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+  write.html — writing a post
+
+  What this page is:
+  Where a delegate writes a new post for the committee board — a
+  statement, a draft resolution, a position paper, or a notice. The
+  body can be typed, or dictated by pressing Record and speaking.
+
+  Publishing sends the delegate straight to the post's own page.
+  Only reachable by a logged-in delegate. Behaviour lives in write.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — Write a Post</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer, not just ones with Rockwell installed. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-loading">
+  <div class="page">
+
+    <!-- TOP BAR — same on every page, so a delegate always knows who
+         they are signed in as and can move back to the board. -->
+    <nav class="topbar">
+      <span class="topbar-brand">BridgeMUN</span>
+
+      <div class="topbar-links">
+        <a class="topbar-link" href="board.html">Board</a>
+        <a class="topbar-link is-current" href="write.html">Write</a>
+      </div>
+
+      <div class="topbar-user">
+        <span class="topbar-name" id="navDelegateName"></span>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+        <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+      </div>
+    </nav>
+
+    <!-- PAGE HEADER — narrower than the board's, since this is a
+         quieter, single-task page. -->
+    <header class="committee-header is-compact">
+      <div class="header-inner">
+        <div>
+          <p class="platform-name">BridgeMUN</p>
+          <h1 class="committee-name">Write a Post</h1>
+          <p class="committee-topic">
+            Draft resolutions, position papers, statements, and notices for the
+            <strong>United Nations Security Council</strong>.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <div class="solo">
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">New Post</h2>
+          <span class="panel-count">Posting as <span id="composerWho"></span></span>
+        </div>
+
+        <!-- THE COMPOSER — where a delegate writes their post. The
+             record button fills the body box with spoken words, so a
+             delegate can always edit before publishing. -->
+        <form class="composer" id="postForm">
+          <div class="composer-head">
+            <span class="composer-label">Title</span>
+            <span class="record-hint" id="recordHint"></span>
+          </div>
+
+          <input
+            class="composer-title"
+            id="postTitle"
+            type="text"
+            maxlength="120"
+            placeholder="e.g. Draft Resolution 1.1 — Human Control Standards">
+
+          <label class="composer-label composer-label-block" for="postBody">Body</label>
+          <textarea
+            class="composer-input"
+            id="postBody"
+            rows="8"
+            placeholder="Type your post, or press Record and speak it aloud…"></textarea>
+
+          <div class="composer-actions">
+            <!-- RECORD: turns speech into text, using the microphone. -->
+            <button class="btn btn-record" id="recordButton" type="button">
+              <span class="record-dot"></span>
+              <span class="record-label">Record</span>
+            </button>
+
+            <button class="btn btn-primary" id="postButton" type="submit" disabled>
+              Publish post
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+
+    <p class="footnote">BridgeMUN · Prototype</p>
+  </div>
+
+  <script type="module" src="write.js"></script>
+</body>
+</html>

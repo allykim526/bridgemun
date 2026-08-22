@@ -1,0 +1,890 @@
+/* =====================================================================
+   style.css — how the whole platform looks
+
+   Shared by every page (signup, login, board, write, post) so that
+   BridgeMUN looks like one product rather than five separate screens.
+
+   Contents:
+     1. Design tokens        7. Post detail
+     2. Foundation           8. The composer (writing + recording)
+     3. Top bar               9. Buttons
+     4. Page header          10. Login / signup pages
+     5. Layout & panels
+     6. Delegate roster
+     6b. Post list
+===================================================================== */
+
+/* =====================================================================
+   1. DESIGN TOKENS
+   Every colour, rounding and shadow is named once here. Restyling the
+   whole platform means editing this block and nothing else. The palette
+   is deep navy with a single gold accent — the visual language of a
+   formal chamber.
+===================================================================== */
+:root {
+  --ink:          #060f20;
+  --navy:         #0c2249;
+  --navy-mid:     #17439c;
+  --gold:         #d9a520;
+  --gold-soft:    #eec861;
+
+  --page:         #e9ecf3;
+  --card:         #ffffff;
+  --card-tint:    #f5f7fb;
+  --line:         #d7deea;
+
+  --text:         #0f1e35;
+  --text-soft:    #47546c;
+  --text-faint:   #7a86a0;
+
+  --bubble-ai:    #e2eaff;
+  --bubble-ai-ln: #a9c1ee;
+
+  --danger:       #b42318;
+  --record:       #c0392b;
+  /* The bold red used anywhere the platform needs to say "this is
+     happening right now" — the live indicator in the header. */
+  --live:         #d7263d;
+
+  /* A heavy, block-lettered serif — the "official document" look,
+     used only for titles, never for body text (which stays easy to
+     read). Loaded from Google Fonts (see the <link> in each page's
+     <head>) so it renders the same thick, square-ended way on every
+     computer, instead of falling back to a thinner system serif. */
+  --font-official: "Roboto Slab", "Rockwell", Georgia, "Times New Roman", serif;
+
+  /* Squarer corners than before — a formal chamber, not a soft app. */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+
+  --shadow-card: 0 1px 2px rgba(9,20,40,.08), 0 6px 18px rgba(9,20,40,.10);
+  --shadow-head: 0 12px 34px rgba(6,15,32,.35);
+}
+
+/* =====================================================================
+   2. FOUNDATION
+===================================================================== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 24px 20px 60px;
+  background:
+    radial-gradient(1200px 400px at 50% -80px, #ffffff 0%, transparent 70%),
+    var(--page);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hides a page until we know who is logged in, so a logged-out visitor
+   never glimpses a page before being redirected to login. */
+body.is-loading .page { visibility: hidden; }
+
+.page { max-width: 1120px; margin: 0 auto; }
+
+.is-hidden { display: none !important; }
+
+/* =====================================================================
+   3. TOP BAR
+   On every logged-in page: the platform name, the two rooms a delegate
+   can move between, and who they are signed in as.
+===================================================================== */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 0 4px 16px;
+}
+
+.topbar-brand {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+
+.topbar-links { display: flex; gap: 4px; }
+
+.topbar-link {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-soft);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.topbar-link:hover { background: #e6ecf6; color: var(--navy); }
+
+/* Marks which page the delegate is currently on. */
+.topbar-link.is-current { background: var(--navy); color: #ffffff; }
+
+.topbar-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-name { font-size: 13px; font-weight: 600; }
+
+.topbar-country {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: #e8eefa;
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+/* =====================================================================
+   4. PAGE HEADER
+   Names the committee and the topic — the piece that has to feel most
+   like an institution. Used at the top of the board, write, and post
+   pages.
+===================================================================== */
+.committee-header {
+  position: relative;
+  overflow: hidden;
+  padding: 38px 40px 30px;
+  border-radius: var(--r-lg);
+  color: #ffffff;
+  background:
+    radial-gradient(700px 300px at 85% -40%, rgba(217,165,32,.22), transparent 60%),
+    linear-gradient(135deg, var(--ink) 0%, var(--navy) 55%, var(--navy-mid) 100%);
+  box-shadow: var(--shadow-head);
+  /* A double gold rule top and bottom, like the border of an official
+     seal or letterhead, rather than a single soft accent line. */
+  border-top: 5px solid var(--gold);
+}
+
+/* A shorter header for quieter pages such as write and post. */
+.committee-header.is-compact { padding: 28px 32px; }
+
+/* The second, thinner gold rule along the bottom edge, completing the
+   letterhead frame. */
+.committee-header::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-soft), var(--gold));
+}
+
+.header-inner { display: flex; align-items: flex-start; gap: 22px; }
+
+/* The emblem: a globe drawn in the page itself, so there is no image
+   file to load or lose. */
+.emblem { flex: 0 0 auto; width: 56px; height: 56px; opacity: .92; }
+
+.platform-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin: 0 0 8px 0;
+}
+
+.committee-name {
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: .3px;
+  margin: 0;
+}
+
+/* The topic under debate, so no delegate loses track of the question. */
+.committee-topic {
+  margin: 12px 0 0 0;
+  font-size: 15px;
+  color: #cbd8ea;
+  max-width: 640px;
+}
+
+.committee-topic strong { color: #ffffff; font-weight: 600; }
+
+.header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #a9bcd6;
+}
+
+.meta-item { display: inline-flex; align-items: center; gap: 8px; }
+
+/* The live indicator, pulsing so the room reads as an active session
+   rather than a static page — the same red used for "recording". */
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: pulse 1.8s ease-out infinite;
+}
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(215,38,61,.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(215,38,61,0); }
+  100% { box-shadow: 0 0 0 0 rgba(215,38,61,0); }
+}
+
+/* The meta item carrying the live status text itself, set apart in
+   bold red so it reads as a broadcast cue, not just a label. */
+.meta-item.is-live {
+  color: #ff9d9d;
+  font-weight: 800;
+}
+
+/* =====================================================================
+   5. LAYOUT & PANELS
+   The roster sits beside the post list, the way a delegate glances
+   around the chamber while reading what has been written so far.
+===================================================================== */
+.room {
+  display: flex;
+  gap: 22px;
+  margin-top: 22px;
+  align-items: flex-start;
+}
+
+.roster-column { flex: 0 0 312px; position: sticky; top: 24px; }
+.main-column { flex: 1; min-width: 0; }
+
+/* A single centred column, used by the write and post pages where there
+   is no roster beside the content. */
+.solo { display: flex; flex-direction: column; gap: 22px; margin-top: 22px; }
+
+@media (max-width: 860px) {
+  .room { flex-direction: column; }
+  .roster-column { position: static; flex: 1 1 auto; width: 100%; }
+  .committee-name { font-size: 25px; }
+  .committee-header { padding: 26px 24px 22px; }
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* The panel's letterhead: solid navy with a gold rule underneath, so
+   every panel on every page reads as an official dossier rather than
+   a plain grey card. */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--ink), var(--navy));
+  border-bottom: 3px solid var(--gold);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.panel-count {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--ink);
+  background: var(--gold-soft);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+/* =====================================================================
+   6. DELEGATE ROSTER
+   Every seat in the committee: held by a student, held by the AI, or
+   still vacant — and a vacant seat is exactly the gap the AI delegate
+   exists to fill.
+===================================================================== */
+.delegate-list { list-style: none; margin: 0; padding: 8px; }
+
+.delegate {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 12px;
+  border-radius: var(--r-md);
+  transition: background .15s ease;
+}
+
+.delegate:hover { background: #f5f8fd; }
+
+/* The AI-held seat: tinted, with a navy edge. */
+.delegate.is-ai { background: #e4ecfc; box-shadow: inset 3px 0 0 var(--navy); }
+
+/* An unclaimed seat is faded, so the empty chairs are obvious. */
+.delegate.is-vacant { opacity: .5; }
+
+/* The seat belonging to whoever is logged in. */
+.delegate.is-me { background: #fbf1d6; box-shadow: inset 3px 0 0 var(--gold); }
+
+.you-tag {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #6b4e05;
+  background: #f2dfa8;
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+/* The flag in a rounded tile, so the roster stays aligned even though
+   flag emoji vary in width. */
+.flag-tile {
+  flex: 0 0 auto;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 21px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(16,36,64,.05);
+}
+
+.delegate-info { display: flex; flex-direction: column; min-width: 0; }
+
+.delegate-country { font-size: 14.5px; font-weight: 600; }
+
+/* Who holds this seat. Telling students and the AI apart instantly is a
+   core promise of BridgeMUN. */
+.delegate-role {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.delegate-role.is-ai { color: var(--navy); }
+
+.delegate-role.is-ai::before {
+  content: "";
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* The AI delegate's opening-speech control, under the roster. */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 20px;
+  background: #f1f4f9;
+  border-top: 1px solid var(--line);
+}
+
+.controls-note { font-size: 12px; color: var(--text-faint); }
+
+.speech-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(19,41,75,.25);
+}
+
+.speech-button:hover:not(:disabled) { filter: brightness(1.12); }
+
+.speech-button:disabled { background: #c2cad8; box-shadow: none; cursor: default; }
+
+/* =====================================================================
+   6b. POST LIST
+   Every post — a statement or a longer piece — appears here as one
+   compact row. Clicking a row opens the full post on its own page.
+===================================================================== */
+/* Numbers every post like an entry in an official record — "No. 001",
+   "No. 002" — purely with a CSS counter, so board.js never has to
+   calculate a number itself. */
+.post-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  counter-reset: post-num;
+}
+
+/* Shown when nobody has posted anything yet. */
+.list-empty {
+  list-style: none;
+  text-align: center;
+  color: var(--text-faint);
+  font-style: italic;
+  padding: 40px 20px;
+  margin: 0;
+}
+
+/* Wraps one post's link and (for a delegate's own post) its delete
+   button side by side, with a hairline rule between entries — the
+   look of a numbered page of minutes rather than a stack of cards. */
+.post-row-item {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.post-row-item:last-child { border-bottom: none; }
+
+.post-row {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  counter-increment: post-num;
+  /* New posts rise into place rather than snapping in. */
+  animation: rise .35s ease both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.post-row:hover { background: #f5f8fd; }
+
+/* A delegate's own posts are tinted gold, so they can find their own
+   contributions while scanning the list. */
+.post-row.is-mine { background: #fbf1d6; }
+.post-row.is-mine:hover { background: #f7e6b8; }
+
+.post-row-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 4px;
+}
+
+/* The record number — "No. 001" — set before every post. */
+.post-row-head::before {
+  content: "No. " counter(post-num, decimal-leading-zero);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  color: var(--gold);
+}
+
+.post-row-flag { font-size: 17px; }
+
+.post-row-title {
+  font-family: var(--font-official);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text);
+}
+
+/* The human/AI tag, so a delegate scanning the list never has to guess
+   who is speaking. */
+.tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  padding: 2.5px 8px;
+  border-radius: 20px;
+  background: #eef1f6;
+  color: var(--text-soft);
+}
+
+.tag.is-ai { background: var(--navy); color: #ffffff; }
+
+.post-row-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.post-row-snippet {
+  margin: 4px 0 0;
+  color: var(--text-soft);
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Deletes a delegate's own post. Kept as a separate button next to the
+   post's link (not inside it), because a clickable button cannot sit
+   inside a clickable link. Only ever shown on a delegate's own posts. */
+.post-row-delete {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-right: 10px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--danger);
+  background: transparent;
+  border: 1px solid var(--danger);
+  border-radius: var(--r-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.post-row-delete:hover { background: var(--danger); color: #ffffff; }
+
+/* =====================================================================
+   7. POST DETAIL
+   The full post, on its own page: title, who wrote it, and the whole
+   body with the delegate's own line breaks kept intact.
+===================================================================== */
+.post-detail { padding: 26px 28px 30px; }
+
+.post-detail-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+
+/* The circular flag standing in for the author's portrait. */
+.avatar {
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(16,36,64,.07);
+}
+
+.avatar.is-ai { border-color: var(--bubble-ai-ln); box-shadow: 0 0 0 3px var(--bubble-ai); }
+
+.post-detail-title {
+  font-family: var(--font-official);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.3;
+  margin: 0 0 6px;
+}
+
+.post-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+.post-detail-country { font-weight: 700; color: var(--navy); }
+
+.post-detail-body {
+  margin: 0;
+  font-size: 15.5px;
+  white-space: pre-wrap;   /* keeps the delegate's own line breaks */
+}
+
+/* Holds the delete button, set apart under a rule so it never looks
+   like part of the post itself. Only shown to the post's own author. */
+.post-detail-actions {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+
+.back-link:hover { color: var(--navy); }
+
+/* =====================================================================
+   8. THE COMPOSER
+   Where a delegate writes a post — by typing, or by pressing Record and
+   speaking it. The recorder writes into the same box, so a delegate can
+   always edit before publishing.
+===================================================================== */
+.composer {
+  padding: 20px 24px 22px;
+}
+
+.composer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.composer-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.composer-label-block { display: block; margin: 14px 0 6px; }
+
+/* The line that reports what the recorder is doing, or what went wrong. */
+.record-hint { font-size: 12px; color: var(--text-soft); }
+.record-hint.is-error { color: var(--danger); }
+
+.composer-input,
+.composer-title {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.composer-input:focus,
+.composer-title:focus {
+  outline: none;
+  border-color: var(--navy-mid);
+  box-shadow: 0 0 0 3px rgba(29,63,110,.12);
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* =====================================================================
+   9. BUTTONS
+===================================================================== */
+.btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease, background .2s ease;
+}
+
+.btn:disabled { opacity: .55; cursor: default; transform: none; box-shadow: none; }
+
+.btn-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  box-shadow: 0 2px 6px rgba(19,41,75,.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 5px 16px rgba(19,41,75,.30);
+  transform: translateY(-1px);
+}
+
+.btn-block { width: 100%; justify-content: center; }
+
+/* A quiet button for secondary actions, like logging out. */
+.btn-quiet {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--line);
+  padding: 7px 12px;
+}
+
+.btn-quiet:hover { background: #ffffff; color: var(--navy); }
+
+/* Deletes a post. Only ever shown to the delegate who wrote it. */
+.btn-danger {
+  color: var(--danger);
+  background: #ffffff;
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) { background: var(--danger); color: #ffffff; }
+
+/* THE RECORD BUTTON — the microphone. Red only while it is actually
+   listening, so a delegate is never unsure whether they are being
+   recorded. */
+.btn-record {
+  background: #ffffff;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.btn-record:hover:not(:disabled) { border-color: var(--record); color: var(--record); }
+
+.record-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--record);
+}
+
+.btn-record.is-recording {
+  background: var(--record);
+  color: #ffffff;
+  border-color: var(--record);
+}
+
+.btn-record.is-recording .record-dot {
+  background: #ffffff;
+  animation: recording 1s ease-in-out infinite;
+}
+
+@keyframes recording {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.8); }
+}
+
+.footnote {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* =====================================================================
+   10. LOGIN / SIGNUP PAGES
+   The doors into the platform: one centred card, nothing else. Both
+   pages share this look so they read as one step, not two products.
+===================================================================== */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(900px 500px at 50% 0%, #1d3f6e 0%, transparent 65%),
+    linear-gradient(160deg, var(--ink), #0d1f3a 60%, #12203a 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  background: var(--card);
+  border-radius: var(--r-lg);
+  padding: 34px 34px 26px;
+  box-shadow: 0 24px 60px rgba(5,14,28,.45);
+}
+
+.auth-brand { text-align: center; margin-bottom: 24px; }
+
+.auth-brand .emblem { width: 48px; height: 48px; margin: 0 auto 10px; display: block; }
+
+/* On the white card the branding line needs a darker gold to stay
+   readable, unlike the navy header where it sits on dark. */
+.auth-brand .platform-name { color: #96760e; }
+
+.auth-title {
+  font-family: var(--font-official);
+  font-weight: 700;
+  font-size: 25px;
+  margin: 0;
+}
+
+.auth-subtitle { margin: 8px 0 0; font-size: 12.5px; color: var(--text-faint); }
+
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.field input,
+.field select {
+  font: inherit;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--navy-mid);
+  box-shadow: 0 0 0 3px rgba(29,63,110,.12);
+}
+
+/* Where errors and confirmations appear. Hidden until there is
+   something to say. */
+.notice { display: none; margin: 0 0 14px; font-size: 13px; border-radius: 10px; padding: 10px 13px; }
+
+.notice.is-visible { display: block; }
+
+.notice.is-error { background: #fdecea; color: var(--danger); }
+
+.notice.is-info { background: #eaf0fc; color: var(--navy); }
+
+/* The link at the bottom of each auth card to the other one — from
+   login to signup, and back. */
+.auth-switch {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.auth-switch a { color: var(--navy); font-weight: 600; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+
+.auth-footnote {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}

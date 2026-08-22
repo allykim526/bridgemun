@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  index.html — the committee room
+
+  What this page is:
+  The live debate. It shows who is seated in the committee, every
+  statement made so far, and a box where the logged-in delegate writes
+  their own statement — by typing it, or by pressing record and
+  speaking it.
+
+  This page is only reachable by a logged-in delegate; anyone else is
+  sent to login.html. All of the behaviour lives in committee.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — United Nations Security Council</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<!-- "is-loading" hides the room until we know who is logged in, so a
+     logged-out visitor never glimpses the committee before being sent
+     to the login page. -->
+<body class="is-loading">
+  <div class="page">
+
+    <!-- ===========================================================
+         TOP BAR — which delegate is signed in, and where they can go.
+    ============================================================ -->
+    <nav class="topbar">
+      <span class="topbar-brand">BridgeMUN</span>
+
+      <div class="topbar-links">
+        <a class="topbar-link is-current" href="index.html">Committee</a>
+        <a class="topbar-link" href="board.html">Board</a>
+      </div>
+
+      <div class="topbar-user">
+        <span class="topbar-name" id="navDelegateName"></span>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+        <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+      </div>
+    </nav>
+
+    <!-- ===========================================================
+         COMMITTEE HEADER — the committee, the topic, the live session.
+    ============================================================ -->
+    <header class="committee-header">
+      <div class="header-inner">
+        <svg class="emblem" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" stroke="#c9a227" stroke-width="1.4"/>
+          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#c9a227" stroke-width="1.1"/>
+          <path d="M15 32h34M18 23h28M18 41h28" stroke="#c9a227" stroke-width="1.1"/>
+          <path d="M20 52a24 24 0 0 1-8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M44 52a24 24 0 0 0 8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+
+        <div>
+          <p class="platform-name">BridgeMUN</p>
+          <h1 class="committee-name">United Nations Security Council</h1>
+          <p class="committee-topic"><strong>Topic:</strong> Regulation of Autonomous Weapons</p>
+        </div>
+      </div>
+
+      <div class="header-meta">
+        <span class="meta-item"><span class="status-dot"></span> Session in progress</span>
+        <span class="meta-item">General Speakers' List</span>
+        <span class="meta-item" id="headerSeats"></span>
+      </div>
+    </header>
+
+    <div class="room">
+
+      <!-- ROSTER — every seat, and who holds it. Drawn by committee.js. -->
+      <div class="roster-column">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Delegates</h2>
+            <span class="panel-count" id="delegateCount"></span>
+          </div>
+          <ul class="delegate-list" id="delegateList"></ul>
+        </section>
+      </div>
+
+      <!-- DISCUSSION — the live feed, then the writing box beneath it. -->
+      <div class="discussion-column">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Committee Discussion</h2>
+            <span class="panel-count" id="messageCount"></span>
+          </div>
+
+          <ul class="feed" id="feed"></ul>
+
+          <!-- THE COMPOSER — where a delegate writes their statement.
+               The record button fills this same box with spoken words,
+               so a delegate can always edit before sending. -->
+          <form class="composer" id="composer">
+            <div class="composer-head">
+              <span class="composer-label">
+                Speaking as <strong id="composerWho"></strong>
+              </span>
+              <span class="record-hint" id="recordHint"></span>
+            </div>
+
+            <textarea
+              class="composer-input"
+              id="speechInput"
+              rows="3"
+              placeholder="Type your statement, or press Record and speak it aloud…"></textarea>
+
+            <div class="composer-actions">
+              <!-- RECORD: turns speech into text, using the microphone. -->
+              <button class="btn btn-record" id="recordButton" type="button">
+                <span class="record-dot"></span>
+                <span class="record-label">Record</span>
+              </button>
+
+              <button class="btn btn-primary" id="sendButton" type="submit" disabled>
+                Send to committee
+              </button>
+            </div>
+          </form>
+
+          <!-- The AI delegate's opening speech. -->
+          <div class="controls">
+            <button class="speech-button" id="aiSpeechButton" type="button">
+              Generate AI Opening Speech
+            </button>
+            <span class="controls-note">The AI delegate holds the United States seat.</span>
+          </div>
+        </section>
+      </div>
+
+    </div>
+
+    <p class="footnote">BridgeMUN · Prototype</p>
+  </div>
+
+  <script type="module" src="committee.js"></script>
+</body>
+</html>
