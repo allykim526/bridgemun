@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<!--
+  debate.html — the meeting screen
+
+  What this page is:
+  One screen that is both the lobby and the live debate. It follows the
+  "forum" layout: a topic bar across the top, a narrow left column and a
+  wide right column. Before the meeting starts, the right column holds the
+  setup (who takes part, voices, options). When the Chair presses Start
+  Meeting, the very same screen turns into the live debate: the setup
+  disappears, and the countdown, video tile, Moderator controls, the
+  speaker's stage, and the votes take its place, while the seats and the
+  discussion feed stay where they were.
+
+  Which parts show is decided by two classes on <body>, set by debate.js:
+    is-live    — the meeting has started (or this delegate has joined one)
+    is-member  — this delegate joined someone else's meeting, so the
+                 Chair-only controls are hidden
+  In style.css, ".only-setup" hides itself once the meeting is live,
+  ".only-live" hides itself until then, ".host-only" hides itself for
+  members, and ".only-member" hides itself for the Chair.
+
+  The words of the debate are written in advance in debate-script.js —
+  nothing here is generated live. Only reachable by a logged-in delegate.
+  Behaviour lives in debate.js, forum.js, and meeting.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — Meeting</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer, not just ones with Rockwell installed. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-loading">
+  <div class="page">
+
+    <!-- TOP BAR — same on every page. -->
+    <nav class="topbar">
+      <span class="topbar-brand">BridgeMUN</span>
+
+      <div class="topbar-links">
+        <a class="topbar-link" href="board.html" title="Back to the home page">⌂ Home</a>
+        <a class="topbar-link" href="write.html">Write</a>
+        <a class="topbar-link is-current" href="debate.html">Meeting</a>
+      </div>
+
+      <span class="live-pill only-live"><span class="status-dot"></span> On Air</span>
+
+      <div class="topbar-user">
+        <a class="topbar-name" id="navDelegateName" href="profile.html" title="Your profile"></a>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+        <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+      </div>
+    </nav>
+
+    <!-- CURRENT AGENDA — the topic, and what state the meeting is in. -->
+    <section class="forum-agenda">
+      <span class="forum-agenda-label">Current Agenda</span>
+      <div class="forum-agenda-text">
+        <h1 class="forum-agenda-title" id="debateTopic"></h1>
+        <p class="forum-agenda-sub" id="debateSdg"></p>
+      </div>
+      <span class="phase-badge" id="phaseBadge">Meeting setup</span>
+      <span class="forum-agenda-seats" id="headerSeats"></span>
+    </section>
+
+    <div class="forum-grid">
+
+      <!-- ===============================================================
+           LEFT COLUMN
+      ================================================================ -->
+      <aside class="forum-left">
+
+        <!-- YOUR DELEGATION — always shown. -->
+        <section class="forum-you">
+          <p class="forum-card-label">Your delegation</p>
+          <div class="forum-you-flag" id="youFlag"></div>
+          <h2 class="forum-you-country" id="youCountry"></h2>
+          <p class="forum-you-name" id="youName"></p>
+          <span class="tag">Human Delegate</span>
+        </section>
+
+        <!-- REMAINING — how long the meeting has left, counting down in
+             real time from the length chosen at setup. -->
+        <section class="forum-timer only-live" id="timerCard">
+          <p class="forum-card-label">Remaining</p>
+          <p class="forum-timer-value" id="remainingTime">30:00</p>
+        </section>
+
+        <!-- VIDEO — the delegate's own tile with Join audio / Start Video.
+             These buttons work as switches, but no live call with other
+             delegates is connected yet, and the panel says so. -->
+        <section class="forum-video only-live">
+          <div class="forum-video-screen">
+            <span class="forum-video-avatar" id="videoAvatar"></span>
+            <span class="forum-video-name" id="videoName"></span>
+            <span class="forum-video-status" id="videoStatus"></span>
+          </div>
+          <div class="forum-video-controls">
+            <button class="btn btn-gold" id="joinAudioButton" type="button">Join audio</button>
+            <button class="btn btn-dark" id="videoToggleButton" type="button">Start Video</button>
+          </div>
+          <p class="forum-video-note">Preview only — live video with other delegates is not connected yet.</p>
+        </section>
+
+        <!-- AGENDA — the order of the debate (the Chair's screen). -->
+        <section class="panel only-live host-only">
+          <div class="panel-head">
+            <h2 class="panel-title">Agenda</h2>
+            <span class="panel-count" id="agendaProgress"></span>
+          </div>
+          <ol class="debate-agenda" id="agendaList"></ol>
+        </section>
+
+        <!-- MEETING LOG — a running record of who spoke, when, for how
+             long, and what else happened (votes called, and how each
+             delegation voted). Filled in live by debate.js. -->
+        <section class="panel only-live host-only">
+          <div class="panel-head">
+            <h2 class="panel-title">Meeting Log</h2>
+            <button class="btn btn-quiet" id="copyLogButton" type="button">Copy</button>
+          </div>
+          <ul class="debate-log-list" id="logList"></ul>
+        </section>
+
+        <!-- SAVED MEETING LOGS — every past meeting's log, saved to this
+             project's Firebase when that meeting ended. -->
+        <section class="panel only-setup">
+          <div class="panel-head">
+            <h2 class="panel-title">Saved Meeting Logs</h2>
+            <span class="panel-count" id="savedLogCount"></span>
+          </div>
+          <ul class="debate-saved-log-list" id="savedLogList"></ul>
+        </section>
+      </aside>
+
+      <!-- ===============================================================
+           RIGHT COLUMN
+      ================================================================ -->
+      <div class="forum-right">
+
+        <!-- ------------------------- SETUP (before Start) ------------- -->
+
+        <!-- ISSUE BRIEF & COUNTRY POSITIONS — the focus topic's background
+             and each researched delegation's stance. Built by debate.js
+             from debate-script.js. -->
+        <section class="panel debate-brief only-setup">
+          <div class="panel-head">
+            <h2 class="panel-title">Issue Brief &amp; Country Positions</h2>
+            <button class="btn btn-quiet" id="briefToggleButton" type="button">Hide brief</button>
+          </div>
+          <div class="debate-setup-body" id="briefBody"></div>
+        </section>
+
+        <!-- MUN PROCEDURE GUIDE — an optional explainer. -->
+        <section class="panel debate-guide only-setup">
+          <div class="panel-head">
+            <h2 class="panel-title">New to MUN? How This Works</h2>
+            <button class="btn btn-quiet" id="guideToggleButton" type="button">Hide guide</button>
+          </div>
+          <div class="debate-setup-body" id="guideBody">
+            <ol class="debate-guide-list">
+              <li><strong>The Chair</strong> runs the session — recognizing each speaker in turn, and calling votes. In this simulator, the Chair is whoever starts the meeting.</li>
+              <li><strong>Opening speeches</strong> — each delegation takes a turn speaking on the topic, usually opening with something like "Honorable Chair, fellow delegates…" and closing with what it wants the committee to do.</li>
+              <li><strong>Formal vs. simple English</strong> — real MUN speeches use diplomatic phrasing ("This delegation believes…"). This simulator can also read a shorter, plain-English version of the same point instead — turn that on per delegation in the setup below.</li>
+              <li><strong>Motions</strong> — a short procedural request, such as moving into voting procedure, extending speaking time, or asking another delegation a question. In this simulator the scripted AI delegates can raise motions too; the Chair decides whether to put one to a vote or rule it out of order.</li>
+              <li><strong>Who votes</strong> — every delegation in the room votes for itself. An AI delegate votes by itself, according to its country's researched position, and shows its reason. A student who has joined the meeting votes for their own country from their own screen. The Chair only ever casts their own country's vote — never anyone else's.</li>
+              <li><strong>Procedural votes</strong> — used for administrative matters, not the substance of a resolution. They move fast: every delegation votes Yes or No — there is no abstaining.</li>
+              <li><strong>Questions</strong> — a delegate may ask another delegation a direct question after its speech, and that delegation answers.</li>
+              <li><strong>Resolution vote &amp; wrap-up</strong> — once debate on the topic is done, the Chair writes up the draft resolution and puts it to a final vote. Rules vary between committees (some require a two-thirds majority for certain matters), but unlike a procedural vote, a resolution vote almost always allows delegations to <em>abstain</em> as well as vote Yes or No. This simulator's resolution is always typed by a person, never generated automatically.</li>
+              <li><strong>Adjournment</strong> — the Chair closes the session once the resolution vote (or the last scheduled speaker) is done.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="panel only-setup">
+          <div class="panel-head">
+            <h2 class="panel-title">Participants</h2>
+            <span class="panel-count" id="participantCount"></span>
+          </div>
+          <div class="debate-setup-body">
+            <p class="debate-note">
+              Pick which delegations speak in this debate. For each one you
+              can choose a voice, a speaking speed, and whether it uses
+              simpler English — every one of these is a per-country option,
+              not a fixed setting. (Students who join, and AI-held seats,
+              vote even if they are not listed here.)
+            </p>
+            <div id="participantList"></div>
+          </div>
+        </section>
+
+        <section class="panel only-setup">
+          <div class="panel-head">
+            <h2 class="panel-title">Meeting Options</h2>
+          </div>
+          <div class="debate-setup-body">
+            <label class="field">
+              <span class="field-label">Meeting length</span>
+              <select id="meetingLengthSelect">
+                <option value="15">15 minutes</option>
+                <option value="30" selected>30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60">60 minutes</option>
+              </select>
+            </label>
+            <label class="debate-toggle">
+              <input type="checkbox" id="silentToggle">
+              <span><strong>Silent mode</strong> — no voice. Each line shows as a caption for about as long as it would take to say, then moves on by itself. No ElevenLabs key needed.</span>
+            </label>
+            <label class="debate-toggle">
+              <input type="checkbox" id="autoMotionsToggle">
+              <span><strong>AI delegates raise motions on their own</strong> — now and then, between speeches, one may raise a motion for the Chair to put to a vote or rule out of order. (You can also ask for one any time with a button.)</span>
+            </label>
+            <label class="debate-toggle">
+              <input type="checkbox" id="captionsToggle" checked>
+              <span>Show captions while each delegate speaks</span>
+            </label>
+            <label class="debate-toggle">
+              <input type="checkbox" id="translateToggle">
+              <span>Let a viewer click a caption to see a translation</span>
+            </label>
+            <label class="field" id="translateLanguageField">
+              <span class="field-label">Translation language</span>
+              <select id="translateLanguageSelect" disabled></select>
+            </label>
+            <p class="debate-note">
+              Only a few languages are written out so far — more can be
+              added to debate-script.js later.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel only-setup">
+          <div class="panel-head">
+            <h2 class="panel-title">ElevenLabs API Key</h2>
+          </div>
+          <div class="debate-setup-body">
+            <p class="debate-note">
+              Only needed to hear the debate spoken aloud (not for silent
+              mode). Stored only in this browser (never saved into the
+              project's files, never sent anywhere but ElevenLabs). Get a
+              key at elevenlabs.io, then paste it below.
+            </p>
+            <label class="field">
+              <span class="field-label">API key</span>
+              <input type="password" id="apiKeyInput" placeholder="sk_…" autocomplete="off">
+            </label>
+            <div class="composer-actions">
+              <button class="btn btn-primary" id="loadVoicesButton" type="button">Save key &amp; load voices</button>
+            </div>
+            <p class="record-hint" id="voiceStatus"></p>
+          </div>
+        </section>
+
+        <div class="only-setup">
+          <button class="btn btn-primary btn-block" id="startButton" type="button" disabled>
+            Start Meeting
+          </button>
+          <p class="record-hint is-error" id="setupError"></p>
+        </div>
+
+        <!-- ------------------------- LIVE (after Start) --------------- -->
+
+        <!-- MODERATOR — the Chair's controls: opening and closing floor
+             voting, and who is speaking right now. -->
+        <section class="panel only-live">
+          <div class="panel-head">
+            <h2 class="panel-title">Moderator</h2>
+          </div>
+          <div class="debate-setup-body">
+            <div class="forum-floor" id="floorBox">
+              <div>
+                <p class="forum-floor-title">Floor voting</p>
+                <p class="forum-floor-text" id="floorText"></p>
+              </div>
+              <button class="btn btn-orange host-only" id="floorToggleButton" type="button"></button>
+            </div>
+            <div class="forum-speaker-bar" id="activeSpeaker"></div>
+            <p class="record-hint is-error" id="timeUpNotice"></p>
+          </div>
+        </section>
+
+        <!-- THE STAGE — whoever is speaking, and what they are saying. The
+             Chair's buttons move the debate along; everyone else just
+             watches it. -->
+        <section class="panel only-live">
+          <div class="debate-stage" id="debateStage">
+            <div class="debate-speaker">
+              <span class="avatar" id="stageAvatar"></span>
+              <div>
+                <p class="debate-speaker-country" id="stageCountry"></p>
+                <p class="debate-speaker-label" id="stageLabel"></p>
+              </div>
+            </div>
+
+            <p class="debate-caption" id="stageCaption"></p>
+            <p class="debate-translation is-hidden" id="stageTranslation"></p>
+
+            <div class="composer-actions host-only">
+              <button class="btn btn-quiet" id="prevButton" type="button">◂ Previous</button>
+              <button class="btn btn-primary" id="playPauseButton" type="button">Pause</button>
+              <button class="btn btn-quiet" id="nextButton" type="button">Next ▸</button>
+            </div>
+            <p class="record-hint" id="stageStatus"></p>
+          </div>
+        </section>
+
+        <!-- MOTIONS & VOTES — the Chair can put a question to the floor at
+             any point ("+ New vote"); every delegation then votes for
+             itself. This is the quick vote on a motion or question; the
+             final vote on the draft resolution is the panel below. -->
+        <section class="panel only-live" id="proceduralVotePanel">
+          <div class="panel-head">
+            <h2 class="panel-title">Motions &amp; Votes</h2>
+            <button class="btn btn-gold host-only" id="callVoteButton" type="button">+ New vote</button>
+          </div>
+
+          <!-- State 1: no vote in progress. -->
+          <div class="debate-setup-body" id="voteIdle">
+            <div class="host-only">
+              <p class="debate-note">
+                No votes yet. Press <strong>+ New vote</strong> to put a
+                question or motion to the floor. Every delegation votes for
+                itself: AI delegates vote by themselves, students vote for
+                their own country, and you only ever vote for yours.
+              </p>
+              <div class="composer-actions">
+                <button class="btn btn-quiet" id="raiseAiMotionButton" type="button">
+                  Have an AI delegate raise a motion
+                </button>
+              </div>
+              <p class="debate-note">
+                AI delegates raise motions from a written list — nothing is
+                generated live. A motion that passes is recorded in the
+                meeting log; it does not change how this simulation runs.
+              </p>
+              <p class="record-hint" id="aiMotionHint"></p>
+            </div>
+            <p class="debate-note only-member">No vote is open. When the Chair calls one, it appears here and you can vote for your country.</p>
+          </div>
+
+          <!-- State 1b: an AI delegate has raised a motion, and the Chair
+               decides what to do with it. -->
+          <div class="debate-setup-body is-hidden" id="aiMotionPanel">
+            <p class="debate-motion-by">
+              <span id="aiMotionFlag"></span>
+              <span id="aiMotionCountry"></span>
+              <span class="tag is-ai">AI Delegate</span>
+              <span>raises a motion:</span>
+            </p>
+            <p class="debate-vote-motion" id="aiMotionText"></p>
+            <div class="composer-actions">
+              <button class="btn btn-primary" id="aiMotionVoteButton" type="button">Put to a vote</button>
+              <button class="btn btn-quiet" id="aiMotionRejectButton" type="button">Rule out of order</button>
+            </div>
+          </div>
+
+          <!-- State 2: writing the question and its options, before the
+               vote opens (the "New vote" input state). It happens on this
+               same screen — it is not a separate page. -->
+          <div class="debate-setup-body is-hidden" id="voteMotionForm">
+            <label class="field">
+              <span class="field-label">Motion / question</span>
+              <input type="text" id="voteMotionInput" maxlength="140"
+                     placeholder="Motion / question (e.g. Adopt the draft resolution?)">
+            </label>
+            <label class="field">
+              <span class="field-label">Options (one per line)</span>
+              <textarea class="composer-input" id="voteOptionsInput" rows="4">Yes
+No
+Abstain</textarea>
+            </label>
+            <p class="debate-note">
+              Delegations can vote Yes or No. Keep the Abstain line to allow
+              abstaining, or delete it for a vote with no abstentions. Other
+              options are not supported in this prototype.
+            </p>
+            <p class="record-hint is-error" id="voteFormError"></p>
+            <div class="composer-actions">
+              <button class="btn btn-quiet" id="cancelVoteButton" type="button">Cancel</button>
+              <button class="btn btn-primary" id="openVoteButton" type="button">Create</button>
+            </div>
+          </div>
+
+          <!-- State 3: the vote is open — each option with its votes so
+               far, then one row per delegation. Each delegation votes for
+               itself; closes when the clock runs out or everyone has
+               voted. -->
+          <div class="debate-setup-body is-hidden" id="voteOpenPanel">
+            <div class="vote-card-head">
+              <p class="debate-vote-motion" id="voteMotionDisplay"></p>
+              <span class="status-badge is-open">Open</span>
+            </div>
+            <p class="debate-note" id="voteMotionOrigin"></p>
+            <p class="debate-vote-timer" id="voteTimer"></p>
+            <div class="live-tally" id="voteLiveTally"></div>
+            <div id="voteBallotList"></div>
+            <p class="debate-note" id="voteBallotCount"></p>
+            <div class="composer-actions host-only">
+              <button class="btn btn-quiet" id="closeVoteButton" type="button">Close</button>
+              <button class="btn btn-danger" id="deleteVoteButton" type="button">Delete</button>
+            </div>
+          </div>
+
+          <!-- State 4: closed — the result as a bar chart. The Chair can
+               reopen it for delegations that have not voted yet. -->
+          <div class="debate-setup-body is-hidden" id="voteResultsPanel">
+            <div class="vote-card-head">
+              <p class="debate-vote-motion" id="voteResultMotion"></p>
+              <span class="status-badge is-closed">Closed</span>
+            </div>
+            <div class="debate-vote-chart" id="voteChart"></div>
+            <p class="debate-vote-verdict" id="voteVerdict"></p>
+            <div class="composer-actions host-only">
+              <button class="btn btn-quiet" id="reopenVoteButton" type="button">Reopen</button>
+              <button class="btn btn-danger" id="deleteClosedVoteButton" type="button">Delete</button>
+              <button class="btn btn-quiet" id="dismissVoteButton" type="button">Close Results</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESOLUTION VOTE & WRAP-UP — once debate on the topic is done,
+             the Chair writes up the draft resolution (typed by a person,
+             never generated automatically) and opens it to a vote. Unlike
+             a quick motion vote, this one is the final vote and allows
+             abstaining. "View Results" opens the Voting outcome screen. -->
+        <section class="panel only-live">
+          <div class="panel-head">
+            <h2 class="panel-title">Resolution Vote &amp; Wrap-Up</h2>
+            <button class="btn btn-gold" id="resViewResultsButton" type="button">View Results</button>
+          </div>
+
+          <!-- State 1: idle. -->
+          <div class="debate-setup-body" id="resVoteIdle">
+            <div class="host-only">
+              <p class="debate-note">
+                Once debate on this topic is finished, write up the draft
+                resolution and put it to a final vote. Delegations may vote
+                Yes (For), No (Against) or Abstain. AI delegates vote by
+                themselves, by their country's position. As Chair you cannot
+                vote for any other delegation.
+              </p>
+              <button class="btn btn-primary" id="writeResolutionButton" type="button">
+                Write Draft Resolution
+              </button>
+            </div>
+            <p class="debate-note only-member">No resolution is up for a vote yet.</p>
+          </div>
+
+          <!-- State 2: the Chair writing the resolution, before the vote
+               opens. -->
+          <div class="debate-setup-body is-hidden" id="resVoteForm">
+            <label class="field">
+              <span class="field-label">Resolution title</span>
+              <input type="text" id="resolutionTitleInput" maxlength="140"
+                     placeholder="e.g. Draft Resolution 1.1 — Digital Inclusion for Older Persons">
+            </label>
+            <label class="field">
+              <span class="field-label">Resolution text</span>
+              <textarea class="composer-input" id="resolutionTextInput" rows="6"
+                        placeholder="Write the preambulatory and operative clauses here…"></textarea>
+            </label>
+            <div class="modal-row">
+              <label class="field">
+                <span class="field-label">Submitted by</span>
+                <input type="text" id="resolutionSubmittedInput" maxlength="80">
+              </label>
+              <label class="field">
+                <span class="field-label">Co-sponsors <em class="field-optional">optional</em></span>
+                <input type="text" id="resolutionCosponsorsInput" maxlength="140" placeholder="e.g. France, United Kingdom">
+              </label>
+            </div>
+
+            <div class="summary-box">
+              <p class="field-label">Forum discussion summary</p>
+              <p class="debate-note" id="resSummaryCount"></p>
+              <button class="btn btn-quiet" id="resGenerateSummaryButton" type="button">Generate summary</button>
+            </div>
+
+            <p class="record-hint" id="resFormHint"></p>
+            <div class="composer-actions">
+              <button class="btn btn-quiet" id="resSaveButton" type="button">Save resolution</button>
+              <button class="btn btn-quiet" id="resAiDraftButton" type="button">AI draft</button>
+              <button class="btn btn-primary" id="openResVoteButton" type="button">Open Vote</button>
+              <button class="btn btn-quiet" id="cancelResVoteButton" type="button">Cancel</button>
+            </div>
+          </div>
+
+          <!-- State 3: the vote is open — the resolution card, the Cast Your
+               Vote buttons, the live tally, and a row per delegation. -->
+          <div class="debate-setup-body is-hidden" id="resVoteOpenPanel">
+            <div class="vote-card-head">
+              <p class="debate-vote-motion" id="resVoteDisplayTitle"></p>
+              <span class="status-badge is-open">Open</span>
+            </div>
+            <p class="debate-resolution-text" id="resVoteDisplayText"></p>
+            <p class="debate-note" id="resVoteDisplayBy"></p>
+            <p class="debate-vote-timer" id="resVoteTimer"></p>
+            <div id="resCastNotice"></div>
+            <p class="field-label">Live vote tally</p>
+            <div class="live-tally" id="resLiveTally"></div>
+            <div id="resVoteBallotList"></div>
+            <p class="debate-note" id="resVoteBallotCount"></p>
+            <div class="composer-actions host-only">
+              <button class="btn btn-quiet" id="closeResVoteButton" type="button">Finalize ballots</button>
+            </div>
+          </div>
+
+          <!-- State 4: results — a Yes / No / Abstain bar chart, and the
+               action that actually concludes the meeting. -->
+          <div class="debate-setup-body is-hidden" id="resVoteResultsPanel">
+            <div class="vote-card-head">
+              <p class="debate-vote-motion" id="resVoteResultTitle"></p>
+              <span class="status-badge is-closed">Closed</span>
+            </div>
+            <div class="debate-vote-chart" id="resVoteChart"></div>
+            <p class="debate-vote-verdict" id="resVoteVerdict"></p>
+            <div class="composer-actions host-only">
+              <button class="btn btn-primary" id="wrapUpButton" type="button">Wrap Up Meeting</button>
+              <button class="btn btn-quiet" id="reopenResVoteButton" type="button">Reopen</button>
+              <button class="btn btn-quiet" id="backToResVoteButton" type="button">Back</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------- ALWAYS SHOWN --------------------- -->
+
+        <!-- AI DELEGATE & EMPTY SEATS — seats held by the AI or still
+             vacant. Each has an AI ON/OFF switch and a Generate button
+             that posts that seat's opening statement to the feed. -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">AI Delegate &amp; Empty Seats</h2>
+          </div>
+          <div class="seat-strip" id="seatStrip"></div>
+        </section>
+
+        <!-- DELEGATIONS — every seat, and who holds it. -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Delegations</h2>
+            <span class="panel-count" id="delegateCount"></span>
+          </div>
+          <div class="seat-strip" id="delegateList"></div>
+        </section>
+
+        <!-- GLOBAL DISCUSSION FEED — every post, newest first. -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Global Discussion Feed</h2>
+            <div class="panel-head-actions">
+              <span class="panel-count" id="postCount"></span>
+              <a class="btn btn-gold" href="write.html">Write a post</a>
+            </div>
+          </div>
+          <ul class="post-list" id="postList"></ul>
+        </section>
+
+        <!-- ENDING — the Chair ends the meeting (saving it); everyone else
+             just leaves. -->
+        <button class="btn btn-quiet only-live host-only" id="endButton" type="button">End Meeting Session &amp; save</button>
+        <div class="only-member only-live">
+          <button class="btn btn-quiet" id="leaveButton" type="button">Leave meeting</button>
+          <button class="btn btn-quiet" id="endForAllButton" type="button">End meeting for everyone</button>
+        </div>
+
+      </div>
+    </div>
+
+    <p class="footnote">BridgeMUN · Prototype</p>
+  </div>
+
+  <!-- VOTING OUTCOME — the results screen, opened by "View Results". It
+       covers the meeting without leaving it: the resolution card, the
+       outcome, the aggregate tally and the country breakdown. Filled in by
+       debate.js using results-view.js. -->
+  <div class="results-overlay is-hidden" id="resultsOverlay">
+    <div class="results-screen">
+      <div class="results-bar">
+        <button class="btn btn-quiet" id="resultsBack" type="button">&larr; Back to voting</button>
+        <span class="results-agenda"><span class="forum-card-label">Current agenda</span> <strong id="resultsAgenda"></strong></span>
+      </div>
+      <p class="forum-card-label">Results</p>
+      <h2 class="results-title">Voting outcome</h2>
+      <p class="results-sub">Final tally and delegate positions for this resolution.</p>
+      <div id="resultsBody"></div>
+      <div class="composer-actions results-actions">
+        <button class="btn btn-quiet" id="resultsReturn" type="button">Return to voting</button>
+        <button class="btn btn-primary" id="resultsMain" type="button">Main dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="debateAudio"></audio>
+
+  <script type="module" src="debate.js"></script>
+</body>
+</html>

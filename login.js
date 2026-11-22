@@ -12,6 +12,7 @@
 
 import { auth, isConfigured } from "./firebase-config.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { DEBATE_TOPIC, DEBATE_SDG } from "./debate-script.js";
 
 // The pieces of the page this file controls.
 const loginForm = document.getElementById("loginForm");
@@ -69,6 +70,10 @@ loginForm.addEventListener("submit", async function (event) {
    If Firebase has not been set up yet, say so here rather than letting
    the delegate press a button that cannot possibly work.
 --------------------------------------------------------------------- */
+// The subtitle under the title: the platform's focus topic, read from
+// debate-script.js so it matches every other page.
+document.getElementById("authTopic").textContent = DEBATE_SDG.goal + " · " + DEBATE_TOPIC;
+
 if (!isConfigured) {
   showNotice("Firebase is not connected yet. Open firebase-config.js and add your project settings (see SETUP.md).", "error");
 }

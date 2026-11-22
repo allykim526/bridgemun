@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  forums.html — My meetings
+
+  What this page is:
+  The list of meetings this delegate has been part of — chaired or joined —
+  newest first. Each card shows its date, whether it is Active or Closed,
+  the topic, and the delegate's role. "View results" opens that meeting's
+  voting results (results.html); an active meeting offers "Return" instead.
+  Only reachable by a logged-in delegate. Behaviour lives in forums.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — My meetings</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-loading home-body">
+
+  <!-- HEADER — logo (home), My meetings, who you are (profile), Log out.
+       The same header as the home page. -->
+  <header class="home-header">
+    <a class="home-brand" href="board.html">
+      <span class="home-logo">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" stroke="#e6d08a" stroke-width="3"/>
+          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#e6d08a" stroke-width="2.4"/>
+          <path d="M15 32h34M18 23h28M18 41h28" stroke="#e6d08a" stroke-width="2.4"/>
+        </svg>
+      </span>
+      <span class="home-brand-name">BridgeMUN</span>
+    </a>
+
+    <nav class="home-nav">
+      <a class="home-nav-link is-current" href="forums.html">My meetings</a>
+      <a class="home-nav-link" href="write.html">Write</a>
+      <span class="home-user">
+        <a class="home-user-name" id="navDelegateName" href="profile.html" title="Your profile"></a>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+      </span>
+      <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+    </nav>
+  </header>
+
+  <main class="home-main">
+    <section class="page-intro">
+      <h1 class="page-title">My meetings</h1>
+      <p class="page-lead">Meetings you joined as a delegate or chaired. Open voting results without re-entering the live session.</p>
+    </section>
+
+    <ul class="forum-list" id="forumList"></ul>
+  </main>
+
+  <footer class="home-footer">BridgeMUN · Prototype</footer>
+
+  <script type="module" src="forums.js"></script>
+</body>
+</html>

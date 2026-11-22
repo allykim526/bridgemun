@@ -58,18 +58,62 @@ service cloud.firestore {
     }
 
     // Board posts: everyone logged in reads the board, and anyone
-    // logged in may publish a post. A delegate may delete their own
-    // post, but nothing can be edited after it is published — the
-    // record of what was said should stand.
+    // logged in may publish a post. A delegate may edit or delete their
+    // own post (an edit may not change who the post belongs to).
     match /posts/{postId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if false;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.uid
+                    && request.resource.data.uid == resource.data.uid;
       allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+
+    // Which empty seats have the AI delegate switched on: everyone logged
+    // in can see it and flip it. One document per country.
+    match /seats/{country} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.resource.data.ai is bool;
+      allow delete: if false;
+    }
+
+    // Live meetings: a delegate starts one, others join it, and the Chair
+    // updates what everyone sees (time left, who is speaking, the open
+    // vote). Everyone logged in can read and update a meeting; only a
+    // delegate can create one, and only as themselves. Nobody can delete one.
+    match /meetings/{meetingId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.hostUid == request.auth.uid;
+      allow update: if request.auth != null;
+      allow delete: if false;
+
+      // One ballot per delegation per vote. It can be created once, only
+      // by the delegate it says it is from, and never changed or deleted.
+      match /ballots/{ballotId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // Saved meeting logs from the debate simulator: everyone logged in
+    // can read past logs, and anyone logged in can save one when their
+    // debate ends. Nobody can change or remove a saved log afterward.
+    match /debateLogs/{logId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
     }
   }
 }
 ```
+
+> **If you already pasted rules before:** the `meetings` block (and, from
+> earlier, `seats` and the new `posts` rule for editing) are new. Re-paste
+> the whole block above into **Firestore Database → Rules** and **Publish**
+> again. Until you do, a meeting still runs on the Chair's screen (with AI
+> delegates voting), but other students cannot join it and no one else can
+> vote; the screen says "not shared" when this is the case.
 
 ---
 
@@ -83,10 +127,13 @@ Open Terminal, go to the project folder, and run:
 
 ```
 cd "/Users/allison/Project MUN"
-python3 -m http.server 8000
+python3 serve.py
 ```
 
-Then open **<http://localhost:8000/login.html>** in **Google Chrome**.
+Then open **<http://localhost:8123/login.html>** in **Google Chrome**.
+(`serve.py` is the same as `python3 -m http.server`, except it tells the
+browser never to keep old copies of the files, so an edit always shows up
+on a normal refresh.)
 
 To stop the server, press `Control + C` in Terminal.
 
@@ -94,15 +141,22 @@ To stop the server, press `Control + C` in Terminal.
 
 ## Part 4 — Try it
 
-1. **Sign up** — name, delegation, email, password. You land on the board.
-2. **Write** in the top bar — type a title and body, or **press Record**,
-   allow the microphone when Chrome asks, and speak. Your words appear in
-   the box. Press **Stop**, edit if needed, then publish.
-3. **Generate AI Opening Speech** on the board — the United States
-   publishes its speech as a post.
-4. Click any post on the board to see it in full.
-5. Open a second browser window in **incognito**, sign up as a different
-   country, and watch posts appear live in both.
+1. **Sign up** — name, delegation, email, password. You land on the **start
+   page**.
+2. **Start Meeting.** The screen becomes the meeting room. Pick who takes
+   part, tick **Silent mode** if you have no ElevenLabs key, and press
+   **Start Meeting** — the same screen turns into the live debate.
+3. **Call a vote.** AI delegates vote by themselves, with a reason; you
+   only ever vote for your own country.
+4. **Two people.** Open a second browser window in **incognito**, sign up as
+   another country (say, Republic of Korea), and open the start page: your
+   running meeting is listed with a **Join** button. Join it, then call a
+   vote from the first window — the second window gets its own Yes/No buttons
+   for its own country.
+5. **Wrap up** with a resolution vote. The result is saved and shows up under
+   "Recent Results" on the start page.
+6. **Write** in the top bar — type a title and body, or **press Record**
+   and speak. Posts appear in the **Discussion Feed** on the meeting screen.
 
 ---
 
@@ -114,9 +168,13 @@ To stop the server, press `Control + C` in Terminal.
   key, no cost, nothing to install.
 - **The recording is not saved.** Only the recognised text is stored. If
   you want the audio kept too, that needs Firebase Storage — a later step.
-- **The AI delegate is still not real AI.** Its speech is written in
-  advance in `committee.js`, clearly marked. Connecting a real AI service
-  means replacing that one value.
+- **The AI delegates are not real AI.** Their speeches are written in
+  advance (`debate-script.js`, `forum.js`), and they vote by matching the
+  words of a motion against their country's researched position — no AI
+  service is called, so nothing costs money.
+- **A joined delegate who closes their tab without pressing Leave** stays
+  listed as in the room, so the Chair's votes wait for them until the clock
+  runs out.
 - **Your Firebase settings are not secrets.** They are meant to be visible
   in the browser. The security rules in Part 2 are what protect the data.
 
@@ -128,12 +186,21 @@ To stop the server, press `Control + C` in Terminal.
 |---|---|
 | `signup.html` / `signup.js` | Creating a delegate account |
 | `login.html` / `login.js` | Logging back in |
-| `board.html` / `board.js` | The board: roster and every post, newest first |
-| `write.html` / `write.js` | Writing a new post, by typing or by voice |
+| `board.html` / `board.js` | The **home page**: Create New Meeting popup, upcoming meetings (Join), My meetings, recent results |
+| `forums.html` / `forums.js` | **My meetings**: the meetings you chaired, joined, or are in now |
+| `results.html` / `results.js` | A saved meeting's **voting results** screen |
+| `results-view.js` | Draws the voting-results screen (used by the meeting screen and `results.html`) |
+| `profile.html` / `profile.js` | **Profile**: display name, debate history, voting history |
+| `debate.html` / `debate.js` | The **meeting screen**: setup, then the live debate, votes, and log |
+| `meeting.js` | The shared meeting and its ballots (Firestore) |
+| `forum.js` | The seats, AI switches, and discussion feed on the meeting screen |
+| `debate-script.js` | The topic, the researched positions, and the written debate |
+| `write.html` / `write.js` | Writing or editing a post, by typing or by voice |
 | `post.html` / `post.js` | One post's full page |
 | `style.css` | How the whole platform looks |
 | `firebase-config.js` | **The one file you edit.** Your Firebase settings |
 | `countries.js` | The list of delegations. Edit to change the committee |
 | `speech.js` | Speech-to-text, shared by the write page |
 | `session.js` | Who is logged in, and logging out |
+| `serve.py` | Runs the site on your computer |
 | `CLAUDE.md` | Working rules for this project |

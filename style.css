@@ -1,16 +1,17 @@
 /* =====================================================================
    style.css — how the whole platform looks
 
-   Shared by every page (signup, login, board, write, post) so that
-   BridgeMUN looks like one product rather than five separate screens.
+   Shared by every page (signup, login, board, write, post, debate) so
+   that BridgeMUN looks like one product rather than six separate
+   screens.
 
    Contents:
      1. Design tokens        7. Post detail
      2. Foundation           8. The composer (writing + recording)
      3. Top bar               9. Buttons
      4. Page header          10. Login / signup pages
-     5. Layout & panels
-     6. Delegate roster
+     5. Layout & panels      11. Debate simulator
+     6. Delegate roster      12. Home (forum) layout
      6b. Post list
 ===================================================================== */
 
@@ -132,7 +133,8 @@ body.is-loading .page { visibility: hidden; }
   gap: 10px;
 }
 
-.topbar-name { font-size: 13px; font-weight: 600; }
+.topbar-name { font-size: 13px; font-weight: 600; color: inherit; text-decoration: none; }
+.topbar-name:hover { text-decoration: underline; }
 
 .topbar-country {
   font-size: 11px;
@@ -306,6 +308,15 @@ body.is-loading .page { visibility: hidden; }
   text-transform: uppercase;
   color: #ffffff;
 }
+
+/* A quiet button inside the navy panel header (Hide guide, Hide brief,
+   Copy) needs light text, or it disappears into the background. */
+.panel-head .btn-quiet {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, .45);
+}
+
+.panel-head .btn-quiet:hover { background: rgba(255, 255, 255, .14); color: #ffffff; }
 
 .panel-count {
   font-size: 11px;
@@ -888,3 +899,1348 @@ body.is-loading .page { visibility: hidden; }
   text-transform: uppercase;
   color: var(--text-faint);
 }
+
+/* =====================================================================
+   11. DEBATE SIMULATOR
+   The setup screen (pick who speaks, and how) and the playback screen
+   (the debate itself, spoken aloud one line at a time).
+===================================================================== */
+.debate-setup-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.debate-note { margin: 0; font-size: 12.5px; color: var(--text-faint); }
+
+/* One delegation's row in the participant list: a checkbox to include
+   it, then its own voice, speed, and reading-level controls. */
+.debate-participant {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+}
+
+.debate-participant + .debate-participant { margin-top: 10px; }
+
+.debate-participant-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.debate-participant-head .flag { font-size: 19px; }
+
+/* Every option here is per delegation on purpose — an accent, a speed,
+   and a reading level are never forced platform-wide. */
+.debate-participant-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.debate-participant-options label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.debate-participant-options select {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+}
+
+.debate-participant-options .debate-inline-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+/* A whole-row on/off setting, like the captions or translate options. */
+.debate-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* The list of what will be said, in order, on the playback screen. */
+.debate-agenda { list-style: none; margin: 0; padding: 8px; counter-reset: agenda-num; }
+
+.debate-agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  color: var(--text-soft);
+  counter-increment: agenda-num;
+}
+
+.debate-agenda-item::before {
+  content: counter(agenda-num);
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 50%;
+  background: var(--card-tint);
+  color: var(--text-faint);
+}
+
+.debate-agenda-item.is-done { color: var(--text-faint); text-decoration: line-through; }
+
+.debate-agenda-item.is-current {
+  background: #fbf1d6;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.debate-agenda-item.is-current::before { background: var(--gold); color: var(--ink); }
+
+/* The main playback card: who is speaking, and what they are saying. */
+.debate-stage { padding: 32px 30px 26px; text-align: center; }
+
+.debate-speaker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.debate-speaker .avatar { width: 64px; height: 64px; font-size: 32px; }
+
+.debate-speaker-country {
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: 20px;
+  margin: 0;
+}
+
+.debate-speaker-label {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.debate-caption {
+  max-width: 560px;
+  margin: 0 auto;
+  font-size: 17px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+
+/* A hint that a caption is clickable, only shown when translation is
+   turned on for this debate. */
+.debate-caption.is-clickable { border-bottom: 1px dashed var(--text-faint); }
+
+.debate-translation {
+  max-width: 560px;
+  margin: 10px auto 0;
+  font-size: 14.5px;
+  font-style: italic;
+  color: var(--text-soft);
+  white-space: pre-wrap;
+}
+
+/* -----------------------------------------------------------------
+   PROCEDURAL VOTE
+   The motion being voted on, a per-delegation Yes/No ballot row, a
+   countdown so the vote does not hang open forever, and a simple bar
+   chart of the result once it closes.
+------------------------------------------------------------------ */
+.debate-vote-motion {
+  font-family: var(--font-official);
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+/* "<flag> <country> [AI Delegate] raises a motion:" — who a motion came
+   from, with the AI label always shown. */
+.debate-motion-by {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.debate-vote-timer {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--record);
+}
+
+.debate-ballot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.debate-ballot-row:last-child { border-bottom: none; }
+
+.debate-ballot-row .flag { font-size: 18px; flex: 0 0 auto; }
+
+.debate-ballot-row .ballot-name { flex: 1; font-weight: 600; font-size: 14px; }
+
+.ballot-vote-btn {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 6px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.ballot-vote-btn.is-yes.is-selected { background: #1f8a3b; border-color: #1f8a3b; color: #ffffff; }
+.ballot-vote-btn.is-no.is-selected { background: var(--danger); border-color: var(--danger); color: #ffffff; }
+
+/* Abstain only ever appears on the resolution vote — procedural votes
+   in this simulator do not allow it. */
+.ballot-vote-btn.is-abstain.is-selected { background: var(--text-faint); border-color: var(--text-faint); color: #ffffff; }
+
+.ballot-status {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--text-faint);
+}
+
+.debate-vote-chart { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 14px; }
+
+.vote-bar-row { display: flex; align-items: center; gap: 10px; }
+
+.vote-bar-label {
+  flex: 0 0 34px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.vote-bar-track {
+  flex: 1;
+  height: 18px;
+  background: var(--card-tint);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.vote-bar-fill { height: 100%; border-radius: var(--r-sm); transition: width .4s ease; }
+.vote-bar-fill.is-yes { background: #1f8a3b; }
+.vote-bar-fill.is-no { background: var(--danger); }
+.vote-bar-fill.is-abstain { background: var(--text-faint); }
+
+.vote-bar-count {
+  flex: 0 0 24px;
+  text-align: right;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.debate-vote-verdict {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* The draft resolution's own text, shown read-only once the vote is
+   open — written by a person on the setup form, never generated. */
+.debate-resolution-text {
+  max-height: 160px;
+  overflow-y: auto;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: var(--card-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* -----------------------------------------------------------------
+   MUN PROCEDURE GUIDE
+   Sits above the setup and playback screens, so it reads as an
+   introduction rather than one more setting among many.
+------------------------------------------------------------------ */
+.debate-guide { margin-bottom: 22px; }
+
+.debate-guide-list {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.debate-guide-list li::marker {
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.debate-guide-list strong { color: var(--navy); }
+
+/* -----------------------------------------------------------------
+   MEETING LOG
+   A running record of what has actually happened — as opposed to the
+   Agenda above it, which only shows what is planned.
+------------------------------------------------------------------ */
+.debate-log-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.debate-log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 7px 8px;
+  border-left: 3px solid var(--line);
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* A speech: who held the floor, and for how long. */
+.debate-log-entry.is-speech { border-left-color: var(--navy); }
+
+/* A procedural vote being called or its result. */
+.debate-log-entry.is-vote { border-left-color: var(--gold); background: #fdf9ec; }
+
+/* Anything else — the debate starting, ending, or being cut short. */
+.debate-log-entry.is-system { border-left-color: var(--text-faint); color: var(--text-soft); font-style: italic; }
+
+.debate-log-time {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+.debate-log-text { flex: 1; }
+
+/* -----------------------------------------------------------------
+   SAVED MEETING LOGS
+   Every past debate, saved to Firestore. Each one is collapsed to a
+   single row until clicked, so a long history stays scannable.
+------------------------------------------------------------------ */
+.debate-saved-log-list { list-style: none; margin: 0; padding: 6px; }
+
+.debate-saved-log-item { border-bottom: 1px solid var(--line); }
+.debate-saved-log-item:last-child { border-bottom: none; }
+
+.debate-saved-log-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 8px;
+  border-radius: var(--r-sm);
+}
+
+.debate-saved-log-head:hover { background: #f5f8fd; }
+
+.debate-saved-log-date { font-weight: 700; font-size: 13px; }
+
+.debate-saved-log-meta { font-size: 11.5px; color: var(--text-faint); }
+
+/* The expanded entries reuse .debate-log-list, just nested one level
+   in and given a little breathing room above. */
+.debate-saved-log-item .debate-log-list { max-height: 220px; margin-top: 4px; }
+
+/* -----------------------------------------------------------------
+   ISSUE BRIEF & COUNTRY POSITIONS
+   The focus topic's background and each delegation's stance, above the
+   setup screen.
+------------------------------------------------------------------ */
+.debate-brief { margin-bottom: 22px; }
+
+.debate-brief-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.debate-brief-chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #e8eefa;
+  color: var(--navy);
+}
+
+.debate-brief-title {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.debate-brief-text { margin: 0; font-size: 14px; line-height: 1.65; }
+
+/* The key fact, set apart like a pull-quote. */
+.debate-brief-fact {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.65;
+  background: #fdf9ec;
+  border-left: 4px solid var(--gold);
+  border-radius: var(--r-sm);
+}
+
+.debate-brief-source { display: block; margin-top: 6px; font-size: 12px; color: var(--text-faint); }
+
+/* One expandable block per delegation. */
+.debate-country-brief {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 0 14px;
+}
+
+.debate-country-brief summary {
+  padding: 12px 0;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.debate-country-brief[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+
+.debate-country-brief .debate-brief-text + .debate-brief-text { margin-top: 8px; }
+
+.debate-brief-position { font-style: italic; }
+
+.debate-brief-sources { margin: 0 0 14px; padding-left: 18px; font-size: 12.5px; word-break: break-all; }
+.debate-brief-sources a { color: var(--navy-mid); }
+
+/* =====================================================================
+   12. HOME (FORUM) LAYOUT
+   The board page, laid out like a forum control room: a topic bar across
+   the top, a narrow left column for who you are and the way into the
+   debate simulator, and a wide right column of panels — seats, votes,
+   and the discussion feed.
+===================================================================== */
+
+/* A gold button, for the main action on a navy background (a panel
+   header or a navy card), where the navy primary button would vanish. */
+.btn-gold {
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+}
+
+.btn-gold:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+
+/* Links styled as buttons should not be underlined. */
+a.btn { text-decoration: none; }
+
+/* The red "Live" indicator in the top bar. */
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--live);
+  background: #fdecee;
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+.panel-head-actions { display: flex; align-items: center; gap: 12px; }
+
+/* CURRENT AGENDA — the strip across the top. */
+.forum-agenda {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--gold);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.forum-agenda-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: #e8eefa;
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+}
+
+.forum-agenda-text { flex: 1; min-width: 240px; }
+
+.forum-agenda-title {
+  margin: 0;
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.forum-agenda-sub { margin: 4px 0 0; font-size: 13px; color: var(--text-soft); }
+
+.forum-agenda-seats {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* THE TWO COLUMNS */
+.forum-grid {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 22px;
+  margin-top: 22px;
+  align-items: start;
+}
+
+.forum-left { display: flex; flex-direction: column; gap: 22px; position: sticky; top: 24px; }
+.forum-right { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+@media (max-width: 900px) {
+  .forum-grid { grid-template-columns: 1fr; }
+  .forum-left { position: static; }
+}
+
+.forum-card-label {
+  margin: 0 0 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+/* YOUR DELEGATION — the big navy card, the one thing a delegate should
+   always see first on this page. */
+.forum-you {
+  padding: 26px 24px 24px;
+  text-align: center;
+  color: #ffffff;
+  border-radius: var(--r-lg);
+  border-bottom: 4px solid var(--gold);
+  background:
+    radial-gradient(500px 220px at 85% -30%, rgba(217, 165, 32, .25), transparent 60%),
+    linear-gradient(135deg, var(--ink) 0%, var(--navy) 55%, var(--navy-mid) 100%);
+  box-shadow: var(--shadow-head);
+}
+
+.forum-you-flag { font-size: 54px; line-height: 1.1; }
+
+.forum-you-country {
+  margin: 8px 0 2px;
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.forum-you-name { margin: 0 0 14px; font-size: 14px; color: var(--gold-soft); }
+
+.forum-you .tag { background: rgba(255, 255, 255, .16); color: #ffffff; }
+
+/* THE SIMULATOR LAUNCHER */
+.forum-launch {
+  padding: 22px 24px 24px;
+  color: #cbd8ea;
+  background: var(--ink);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.forum-launch-text { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; }
+
+/* SEAT CARDS — one per delegation, in a row that scrolls sideways. */
+.seat-strip { display: flex; gap: 12px; overflow-x: auto; padding: 14px 16px 16px; }
+
+.seat-strip::-webkit-scrollbar { height: 8px; }
+.seat-strip::-webkit-scrollbar-thumb { background: #d6dde8; border-radius: 8px; }
+
+.seat-card {
+  flex: 0 0 auto;
+  min-width: 210px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+/* The AI-held seat: tinted, with a navy edge. */
+.seat-card.is-ai { background: #e4ecfc; border-left: 3px solid var(--navy); }
+
+/* An unclaimed seat is faded, so the empty chairs are obvious. */
+.seat-card.is-vacant { opacity: .6; border-style: dashed; }
+
+/* The seat belonging to whoever is logged in. */
+.seat-card.is-me { background: #fbf1d6; border-color: var(--gold); }
+
+.seat-empty { margin: 0; padding: 22px; text-align: center; font-style: italic; color: var(--text-faint); }
+
+/* MOTIONS & VOTES — how recent debates ended. */
+.session-list { list-style: none; margin: 0; padding: 6px 8px; }
+
+.session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.session-row:last-child { border-bottom: none; }
+
+.session-date { font-weight: 700; font-size: 13px; }
+.session-meta { font-size: 12px; color: var(--text-faint); }
+
+.outcome-badge {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: 4px 10px;
+  background: #eef1f6;
+  color: var(--text-soft);
+}
+
+.outcome-badge.is-adopted { background: #1f8a3b; color: #ffffff; }
+.outcome-badge.is-failed { background: var(--danger); color: #ffffff; }
+
+/* A post by an AI delegate is tinted and edged in navy in the feed, so
+   it can never be mistaken for a student's. */
+.post-row.is-ai { background: #eef3fd; box-shadow: inset 3px 0 0 var(--navy); }
+.post-row.is-ai:hover { background: #e4ecfc; }
+
+/* -----------------------------------------------------------------
+   MEETING ROOM — timer, video tile, and Moderator controls
+   The live meeting's side of the forum layout: a big countdown and a
+   video tile in the left column, and the Chair's floor-voting switch and
+   the current speaker at the top of the right column.
+------------------------------------------------------------------ */
+
+/* Two more button colours: orange for "close floor voting" (an action
+   that ends something), and a dark button for use on a black tile. */
+.btn-orange {
+  color: #ffffff;
+  background: linear-gradient(135deg, #e0892f, #c96f1a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
+}
+
+.btn-orange:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-orange.is-open-state { background: linear-gradient(135deg, #1f8a3b, #176b2e); }
+
+.btn-dark { color: #ffffff; background: #1d2a44; border: 1px solid rgba(255, 255, 255, .25); }
+.btn-dark:hover:not(:disabled) { background: #26365a; }
+
+/* REMAINING — the big countdown card. */
+.forum-timer {
+  padding: 22px 24px;
+  text-align: center;
+  color: #ffffff;
+  border-radius: var(--r-lg);
+  border-bottom: 4px solid var(--gold);
+  background: linear-gradient(135deg, var(--navy-mid), var(--navy));
+  box-shadow: var(--shadow-head);
+  margin-bottom: 22px;
+}
+
+.forum-timer .forum-card-label { margin-bottom: 4px; }
+
+.forum-timer-value {
+  margin: 0;
+  font-family: var(--font-official);
+  font-weight: 900;
+  font-size: 46px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The last minute, and time-up, turn the card red. */
+.forum-timer.is-low { background: linear-gradient(135deg, #b42318, #7a1810); }
+
+/* VIDEO TILE */
+.forum-video {
+  margin-bottom: 22px;
+  padding: 14px;
+  background: #050b17;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.forum-video-screen {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #cbd8ea;
+  border-radius: var(--r-md);
+  background: #0b1424;
+}
+
+.forum-video-avatar {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: 30px;
+  color: #ffffff;
+  background: #26365a;
+}
+
+.forum-video.is-video-on .forum-video-avatar { box-shadow: 0 0 0 3px var(--gold); }
+
+.forum-video-name { font-size: 13px; font-weight: 700; color: #ffffff; }
+.forum-video-status { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: #8fa3c4; }
+
+.forum-video-controls { display: flex; gap: 10px; margin-top: 12px; }
+.forum-video-controls .btn { flex: 1; justify-content: center; padding: 10px 8px; }
+
+.forum-video-note { margin: 10px 2px 0; font-size: 11.5px; color: #8fa3c4; }
+
+/* FLOOR VOTING + CURRENT SPEAKER */
+.forum-floor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: #fdf4e3;
+  border: 1px solid #f0d9a8;
+  border-radius: var(--r-md);
+}
+
+.forum-floor.is-closed { background: var(--card-tint); border-color: var(--line); }
+
+.forum-floor-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.forum-floor-text { margin: 2px 0 0; font-size: 13px; color: var(--text-soft); }
+
+.forum-speaker-bar {
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--card-tint);
+  border-radius: var(--r-md);
+  color: var(--text-faint);
+}
+
+.forum-speaker-bar.has-speaker { color: var(--text); background: #fbf1d6; }
+
+/* -----------------------------------------------------------------
+   AI SEAT CONTROLS and POST ACTION BUTTONS (home page)
+------------------------------------------------------------------ */
+
+/* A seat card with controls wraps them onto a row of their own. */
+.seat-card:has(.seat-controls) { flex-wrap: wrap; }
+
+.seat-controls { flex: 1 0 100%; display: flex; gap: 8px; }
+
+.seat-btn {
+  flex: 1;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 7px 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--navy);
+  background: transparent;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.seat-btn.is-on { background: var(--navy); color: #ffffff; }
+
+.seat-btn.is-generate { background: var(--gold-soft); border-color: var(--gold); color: var(--ink); }
+
+.seat-btn:disabled { opacity: .5; cursor: default; }
+
+/* The Read aloud / Edit / Delete buttons beside a post, stacked. */
+.post-row-actions {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-right: 10px;
+}
+
+.post-row-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.post-row-btn:hover { color: var(--navy); border-color: var(--navy); }
+
+/* Inside the stack, Delete keeps its red look but not its old spacing. */
+.post-row-actions .post-row-delete { margin: 0; align-self: auto; color: var(--danger); border-color: var(--danger); }
+.post-row-actions .post-row-delete:hover { background: var(--danger); color: #ffffff; }
+
+/* =====================================================================
+   13. THE MEETING SCREEN'S PHASES, AND THE START PAGE
+   The meeting screen (debate.html) is one page that changes: before the
+   meeting starts, the setup shows; once it starts, the live debate takes
+   its place. debate.js sets two classes on <body> and these four rules do
+   the hiding:
+     .only-setup  — hidden once the meeting is live
+     .only-live   — hidden until the meeting is live
+     .host-only   — hidden for a delegate who joined someone else's meeting
+     .only-member — hidden for the Chair
+===================================================================== */
+body:not(.is-live) .only-live { display: none !important; }
+body.is-live .only-setup { display: none !important; }
+body.is-member .host-only { display: none !important; }
+body:not(.is-member) .only-member { display: none !important; }
+
+/* What state the meeting is in, shown in the topic bar. */
+.phase-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #e8eefa;
+  color: var(--navy);
+}
+
+body.is-live .phase-badge { background: #fdecee; color: var(--live); }
+
+/* THE START PAGE */
+.start-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  padding: 30px 34px;
+  color: #ffffff;
+  border-radius: var(--r-lg);
+  border-bottom: 4px solid var(--gold);
+  background:
+    radial-gradient(600px 260px at 90% -30%, rgba(217, 165, 32, .28), transparent 60%),
+    linear-gradient(135deg, var(--ink) 0%, var(--navy) 55%, var(--navy-mid) 100%);
+  box-shadow: var(--shadow-head);
+}
+
+.start-hero-text { flex: 1; min-width: 280px; }
+
+.start-title {
+  margin: 0 0 10px;
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: 30px;
+}
+
+.start-text { margin: 0; max-width: 640px; font-size: 14.5px; line-height: 1.65; color: #cbd8ea; }
+
+.start-button { font-size: 16px; padding: 16px 34px; }
+
+.start-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 22px;
+}
+
+@media (max-width: 860px) {
+  .start-grid { grid-template-columns: 1fr; }
+}
+
+/* A ballot row can carry a second line: the AI delegate's reason. */
+.debate-ballot-row { flex-wrap: wrap; }
+
+.ballot-reason {
+  flex: 1 0 100%;
+  padding-left: 30px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+/* "Who voted how", under the result chart. */
+.vote-breakdown { margin-top: 6px; }
+
+.vote-breakdown-row { padding: 5px 0; font-size: 12.5px; line-height: 1.5; border-top: 1px solid var(--line); }
+.vote-breakdown-row strong { margin-right: 6px; }
+.vote-breakdown-row span { color: var(--text-faint); }
+
+/* =====================================================================
+   14. HOME PAGE
+   The home page laid out like a forum start screen: a white header, a
+   big centred title with the main button, then plain card lists. Colours
+   still come from the tokens at the top (navy and gold), so only the
+   arrangement differs from the other pages.
+===================================================================== */
+
+/* Same "hide until we know who is logged in" rule as .page, since the
+   home page has no .page wrapper. */
+body.home-body { padding: 0; min-height: 100vh; background: linear-gradient(180deg, #dfe8f8 0%, var(--page) 420px) no-repeat, var(--page); }
+body.is-loading.home-body > * { visibility: hidden; }
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 28px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+}
+
+.home-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--navy); }
+
+.home-logo {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  padding: 5px;
+  border-radius: var(--r-md);
+  background: var(--navy);
+}
+
+.home-brand-name { font-family: var(--font-official); font-weight: 800; font-size: 17px; letter-spacing: .3px; }
+
+.home-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.home-nav-link {
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+.home-nav-link:hover { background: #e6ecf6; color: var(--navy); }
+
+.home-user { display: inline-flex; align-items: center; gap: 8px; margin: 0 6px; }
+.home-user-name { font-size: 13px; font-weight: 700; }
+
+.home-main { max-width: 860px; margin: 0 auto; padding: 56px 20px 40px; }
+
+.home-hero { text-align: center; padding-bottom: 36px; }
+
+.home-title {
+  margin: 0 0 14px;
+  font-family: var(--font-official);
+  font-weight: 800;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.15;
+  color: var(--navy);
+}
+
+.home-lead { max-width: 560px; margin: 0 auto 14px; font-size: 17px; color: var(--text-soft); }
+
+.home-agenda { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--navy); }
+.home-agenda-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.home-features { max-width: 560px; margin: 0 auto 26px; font-size: 13px; color: var(--text-faint); }
+
+.home-create { font-size: 16px; padding: 14px 30px; border-radius: var(--r-md); }
+
+.home-section {
+  margin-top: 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.home-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card-tint);
+}
+
+.home-section-title { margin: 0; font-family: var(--font-official); font-size: 17px; color: var(--navy); }
+
+.home-list { list-style: none; margin: 0; padding: 6px 12px; }
+
+/* The topic line inside an Upcoming / My meetings row. */
+.session-topic { font-size: 13.5px; font-weight: 600; color: var(--text); }
+
+.home-footer { padding: 26px 20px 40px; text-align: center; font-size: 12px; color: var(--text-faint); }
+
+/* The "Create New Meeting" popup: a dark backdrop with a white card. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(6, 15, 32, .55);
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px;
+  background: var(--card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-head);
+}
+
+.modal-title { margin: 0; font-family: var(--font-official); font-size: 22px; color: var(--navy); }
+.modal-label { margin: 0 0 -8px; font-size: 10.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-faint); }
+.modal-agenda { margin: 0; font-weight: 600; color: var(--text); }
+
+@media (max-width: 640px) {
+  .home-header { padding: 10px 16px; }
+  .home-main { padding-top: 36px; }
+}
+
+/* The Meeting Details popup is wider than a plain dialog: it holds the
+   date, length, country count and the country chips. */
+.modal-wide { max-width: 640px; }
+
+.modal-head { display: flex; align-items: center; justify-content: space-between; }
+.modal-close {
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+.modal-close:hover { color: var(--navy); }
+.modal-sub { margin: -10px 0 0; font-size: 12.5px; color: var(--text-faint); }
+.field-optional { font-weight: 400; font-style: normal; color: var(--text-faint); text-transform: none; letter-spacing: 0; }
+.field input[readonly] { background: var(--card-tint); color: var(--text-soft); }
+
+.modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* A row of joined buttons where exactly one is on (30/60 Min, presets). */
+.seg { display: flex; gap: 6px; }
+.seg-btn {
+  flex: 1;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.seg-btn:hover { background: #e6ecf6; }
+.seg-btn.is-on { background: var(--navy); border-color: var(--navy); color: #ffffff; }
+
+.slider-row { display: flex; align-items: baseline; justify-content: space-between; }
+.slider-end { font-size: 11px; color: var(--text-faint); }
+.slider-value { font-family: var(--font-official); font-size: 30px; font-weight: 800; color: var(--navy); }
+#modalCount { width: 100%; accent-color: var(--navy); }
+
+.country-head { display: flex; align-items: center; justify-content: space-between; }
+.country-count { color: var(--navy-mid); }
+
+/* A small text-style button (Random, ALL ON, ALL OFF). */
+.btn-link {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  background: none;
+  color: var(--navy-mid);
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.btn-link:hover { text-decoration: underline; }
+
+.modal-hint { margin: 0; font-size: 12px; color: var(--navy-mid); }
+
+.country-chips { display: flex; flex-wrap: wrap; gap: 8px; max-height: 150px; overflow-y: auto; padding: 2px; }
+
+.country-chip {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  overflow: hidden;
+}
+.country-chip.is-picked { border-color: var(--navy); background: #e6ecf6; }
+
+.chip-name, .chip-ai {
+  font: inherit;
+  font-size: 12.5px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  color: var(--text);
+}
+.chip-name:hover { background: #dbe4f3; }
+.chip-ai { font-weight: 800; font-size: 11px; border-left: 1px solid var(--line); color: var(--text-faint); }
+.chip-ai.is-on { background: var(--gold); border-left-color: var(--gold); color: var(--ink); }
+.chip-ai:disabled { cursor: default; }
+
+.ai-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+.ai-count { color: var(--navy-mid); }
+
+@media (max-width: 640px) {
+  .modal-row { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================
+   15. MOTIONS & VOTES, THE RESOLUTION VOTE, AND THE VOTING OUTCOME SCREEN
+   The vote cards in the meeting room (open / closed badges, the live
+   tally, the "Cast your vote" row), and the full-screen results view that
+   "View Results" opens — the same results look is also used by the saved
+   results page (results.html).
+===================================================================== */
+
+/* "Read aloud" on a post is the button people reach for most, so it is
+   larger than Edit and Delete. */
+.post-row-actions .post-row-read {
+  font-size: 13px;
+  padding: 11px 18px;
+  color: #ffffff;
+  background: var(--navy);
+  border-color: var(--navy);
+}
+.post-row-actions .post-row-read:hover { filter: brightness(1.15); color: #ffffff; }
+
+/* Title on the left, Open / Closed badge on the right. */
+.vote-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.vote-card-head .debate-vote-motion { margin: 0; }
+
+.status-badge {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+.status-badge.is-open { background: #e1f4e6; color: #1f8a3b; }
+.status-badge.is-closed { background: #e9ecf3; color: var(--text-soft); }
+
+/* Each option with its votes so far, while a vote is open. */
+.live-tally { display: flex; flex-direction: column; gap: 8px; }
+.live-tally-head { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; }
+.live-tally-head span:last-child { color: var(--text-soft); font-weight: 600; }
+.live-tally-track, .rv-track { height: 8px; border-radius: 6px; background: #e9ecf3; overflow: hidden; }
+.live-tally-fill, .rv-fill { height: 100%; border-radius: 6px; transition: width .3s ease; }
+.live-tally-fill.is-yes, .rv-fill.is-yes { background: #1f8a3b; }
+.live-tally-fill.is-no, .rv-fill.is-no { background: var(--danger); }
+.live-tally-fill.is-abstain, .rv-fill.is-abstain { background: #8893a8; }
+
+/* The switched-off Yes / No / Abstain shown to someone who cannot vote. */
+.cast-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.summary-box { padding: 12px 14px; background: var(--card-tint); border: 1px solid var(--line); border-radius: var(--r-md); }
+.summary-box .debate-note { margin: 4px 0 10px; }
+
+/* The Voting outcome screen: covers the meeting, scrolls on its own. */
+body.is-modal-open { overflow: hidden; }
+
+.results-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow-y: auto;
+  background: var(--page);
+}
+
+.results-screen { max-width: 820px; margin: 0 auto; padding: 22px 20px 60px; }
+
+.results-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+.results-agenda { font-size: 13px; }
+
+.results-title { margin: 2px 0 4px; font-family: var(--font-official); font-size: 32px; font-weight: 800; color: var(--navy); }
+.results-sub { margin: 0 0 20px; color: var(--text-soft); }
+.results-actions { justify-content: center; margin-top: 26px; }
+
+/* The cards inside the results screen (results-view.js). */
+.rv-card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+.rv-resolution { background: linear-gradient(180deg, #eef3fc, #ffffff); border-color: var(--bubble-ai-ln); }
+.rv-resolution-title { margin: 0 0 8px; font-size: 18px; color: var(--navy); }
+.rv-resolution-text { margin: 0 0 12px; white-space: pre-wrap; color: var(--text-soft); }
+.rv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.rv-chip { font-size: 11px; font-weight: 700; color: var(--text-soft); background: #ffffff; border: 1px solid var(--line); border-radius: 20px; padding: 4px 12px; }
+
+.rv-summary { text-align: center; font-weight: 600; color: var(--text-soft); }
+.rv-summary.is-adopted { color: #1f8a3b; background: #e8f6ec; border-color: #b5dfc0; }
+.rv-summary.is-failed { color: var(--danger); background: #fdecee; border-color: #f2b8bf; }
+
+.rv-heading { margin: 0 0 12px; font-size: 12px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text); }
+.rv-sub { margin: -8px 0 10px; font-size: 12px; color: var(--text-faint); }
+.rv-tally-line { display: flex; justify-content: space-between; margin: 12px 0 6px; font-size: 14px; font-weight: 700; }
+.rv-tally-count { font-weight: 600; color: var(--text-soft); }
+.rv-empty { margin: 0; padding: 18px 0; text-align: center; color: var(--text-faint); }
+
+.rv-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.rv-table th { text-align: left; font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-faint); padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.rv-table td { padding: 10px 6px; border-bottom: 1px solid var(--line); }
+.rv-table .tag { margin-left: 8px; }
+.rv-vote { font-weight: 800; color: var(--text-faint); }
+.rv-vote.is-yes { color: #1f8a3b; }
+.rv-vote.is-no { color: var(--danger); }
+.rv-vote.is-abstain { color: #5d6985; }
+
+/* =====================================================================
+   16. MY MEETINGS, SAVED RESULTS AND PROFILE PAGES
+   Pages that share the home page's header and centred layout.
+===================================================================== */
+.home-nav-link.is-current { background: var(--navy); color: #ffffff; }
+.home-user-name { color: inherit; text-decoration: none; }
+.home-user-name:hover { text-decoration: underline; }
+
+.page-intro { margin-bottom: 18px; }
+.page-title { margin: 0 0 6px; font-family: var(--font-official); font-size: 30px; font-weight: 800; color: var(--navy); }
+.page-lead { margin: 0 0 20px; color: var(--text-soft); }
+.page-kicker { margin: 0 0 14px; font-size: 13px; color: var(--text-soft); }
+
+/* One card per meeting on My meetings. */
+.forum-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+
+.forum-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.forum-item-info p { margin: 0; }
+.forum-item-meta { font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-faint); }
+.forum-item-status { margin-left: 10px; }
+.forum-item-status.is-active { color: #1f8a3b; }
+.forum-item-status.is-closed { color: var(--text-soft); }
+.forum-item-title { margin-top: 4px !important; font-size: 17px; font-weight: 800; color: var(--text); }
+.forum-item-role { font-size: 12.5px; color: var(--text-soft); }
+
+/* The profile card. */
+.profile-card { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.profile-field { margin: 0; }
+.profile-email { margin: 4px 0; font-weight: 700; }
+.profile-link-row { margin: 0; text-align: center; }
+
+@media (max-width: 640px) {
+  .forum-item { flex-direction: column; align-items: flex-start; }
+}
+
+/* A history row's title is a link; keep it looking like the other rows. */
+.session-date a { color: inherit; text-decoration: none; }
+.session-date a:hover { text-decoration: underline; color: var(--navy-mid); }

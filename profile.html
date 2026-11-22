@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--
+  profile.html — the delegate's profile
+
+  What this page is:
+  Where a delegate sees and changes how their name appears. It shows the
+  login email (display only — it cannot be changed here), a Display name
+  field with Save changes, a link to My meetings, and two records: the
+  posts they have written (debate history) and the votes they have cast
+  (voting history). Only reachable by a logged-in delegate. Behaviour lives
+  in profile.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — Profile</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-loading home-body">
+
+  <!-- HEADER — logo (home), My meetings, who you are (profile), Log out.
+       The same header as the home page. -->
+  <header class="home-header">
+    <a class="home-brand" href="board.html">
+      <span class="home-logo">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" stroke="#e6d08a" stroke-width="3"/>
+          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#e6d08a" stroke-width="2.4"/>
+          <path d="M15 32h34M18 23h28M18 41h28" stroke="#e6d08a" stroke-width="2.4"/>
+        </svg>
+      </span>
+      <span class="home-brand-name">BridgeMUN</span>
+    </a>
+
+    <nav class="home-nav">
+      <a class="home-nav-link" href="forums.html">My meetings</a>
+      <a class="home-nav-link" href="write.html">Write</a>
+      <span class="home-user">
+        <a class="home-user-name" id="navDelegateName" href="profile.html" title="Your profile"></a>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+      </span>
+      <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+    </nav>
+  </header>
+
+  <main class="home-main">
+    <p class="results-bar"><a class="back-link" href="board.html">&larr; Main page</a></p>
+    <h1 class="page-title">Profile</h1>
+    <p class="page-lead">Update how your name appears in meetings. Email is tied to your login account.</p>
+
+    <section class="home-section profile-card">
+      <div class="profile-field">
+        <p class="field-label">Email</p>
+        <p class="profile-email" id="profileEmail"></p>
+        <p class="debate-note">Changing email is not supported here; use account recovery or contact your administrator if needed.</p>
+      </div>
+
+      <label class="field profile-field">
+        <span class="field-label">Display name</span>
+        <input type="text" id="profileName" maxlength="40">
+      </label>
+      <p class="record-hint" id="profileHint"></p>
+
+      <button class="btn btn-primary btn-block" id="profileSave" type="button">Save changes</button>
+      <p class="profile-link-row"><a class="back-link" href="forums.html">My meetings</a></p>
+    </section>
+
+    <section class="home-section">
+      <div class="home-section-head">
+        <h2 class="home-section-title">Debate history</h2>
+        <span class="panel-count" id="debateCount">0</span>
+      </div>
+      <ul class="home-list" id="debateList"></ul>
+    </section>
+
+    <section class="home-section">
+      <div class="home-section-head">
+        <h2 class="home-section-title">Voting history</h2>
+        <span class="panel-count" id="votingCount">0</span>
+      </div>
+      <ul class="home-list" id="votingList"></ul>
+    </section>
+  </main>
+
+  <footer class="home-footer">BridgeMUN · Prototype</footer>
+
+  <script type="module" src="profile.js"></script>
+</body>
+</html>

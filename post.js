@@ -60,7 +60,8 @@ function renderPost(id, post, isMine) {
   postDetail.querySelector(".post-detail-country").textContent = post.country;
   postDetail.querySelector(".tag").textContent = isAI ? "AI Delegate" : "Human Delegate";
   postDetail.querySelector(".post-detail-author").textContent = isAI ? "" : post.name;
-  postDetail.querySelector(".post-detail-date").textContent = formatDate(post.createdAt);
+  postDetail.querySelector(".post-detail-date").textContent =
+    formatDate(post.createdAt) + (post.editedAt ? " (edited)" : "");
   postDetail.querySelector(".post-detail-body").textContent = post.body;
 
   if (isMine) {

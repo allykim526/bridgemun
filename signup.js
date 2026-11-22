@@ -13,6 +13,7 @@
 
 import { auth, db, isConfigured } from "./firebase-config.js";
 import { COUNTRIES } from "./countries.js";
+import { DEBATE_TOPIC, DEBATE_SDG } from "./debate-script.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   doc,
@@ -114,6 +115,10 @@ signupForm.addEventListener("submit", async function (event) {
    PAGE START
 --------------------------------------------------------------------- */
 fillCountryOptions();
+
+// The subtitle under the title: the platform's focus topic, read from
+// debate-script.js so it matches every other page.
+document.getElementById("authTopic").textContent = DEBATE_SDG.goal + " · " + DEBATE_TOPIC;
 
 // If Firebase has not been set up yet, say so here rather than letting
 // the delegate press a button that cannot possibly work.

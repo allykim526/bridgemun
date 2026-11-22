@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+  results.html — voting results of a finished meeting
+
+  What this page is:
+  The "Voting outcome" screen for one saved meeting (results.html?log=<id>),
+  reached from "View results" on My meetings. It shows the resolution, the
+  outcome, the aggregate tally and the country breakdown, drawn by
+  results-view.js — the same look as the results screen inside a live
+  meeting. Only reachable by a logged-in delegate. Behaviour lives in
+  results.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeMUN — Voting results</title>
+  <!-- A heavy slab serif for titles only — see --font-official in
+       style.css. Loaded from Google Fonts so it looks the same on
+       every computer. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-loading home-body">
+
+  <!-- HEADER — logo (home), My meetings, who you are (profile), Log out.
+       The same header as the home page. -->
+  <header class="home-header">
+    <a class="home-brand" href="board.html">
+      <span class="home-logo">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" stroke="#e6d08a" stroke-width="3"/>
+          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#e6d08a" stroke-width="2.4"/>
+          <path d="M15 32h34M18 23h28M18 41h28" stroke="#e6d08a" stroke-width="2.4"/>
+        </svg>
+      </span>
+      <span class="home-brand-name">BridgeMUN</span>
+    </a>
+
+    <nav class="home-nav">
+      <a class="home-nav-link" href="forums.html">My meetings</a>
+      <a class="home-nav-link" href="write.html">Write</a>
+      <span class="home-user">
+        <a class="home-user-name" id="navDelegateName" href="profile.html" title="Your profile"></a>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+      </span>
+      <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+    </nav>
+  </header>
+
+  <main class="home-main">
+    <p class="results-bar"><a class="back-link" href="forums.html">&larr; Back to My meetings</a></p>
+    <p class="page-kicker">Current agenda: <strong id="resultsAgenda"></strong></p>
+    <p class="forum-card-label">Results</p>
+    <h1 class="results-title">Voting outcome</h1>
+    <p class="results-sub" id="resultsSub">Final tally and delegate positions for this resolution.</p>
+
+    <div id="resultsBody"></div>
+
+    <div class="composer-actions results-actions">
+      <a class="btn btn-quiet" href="forums.html">Back to My meetings</a>
+      <a class="btn btn-primary" href="board.html">Main dashboard</a>
+    </div>
+  </main>
+
+  <footer class="home-footer">BridgeMUN · Prototype</footer>
+
+  <script type="module" src="results.js"></script>
+</body>
+</html>

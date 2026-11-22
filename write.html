@@ -33,12 +33,13 @@
       <span class="topbar-brand">BridgeMUN</span>
 
       <div class="topbar-links">
-        <a class="topbar-link" href="board.html">Board</a>
+        <a class="topbar-link" href="board.html">Home</a>
         <a class="topbar-link is-current" href="write.html">Write</a>
+        <a class="topbar-link" href="debate.html">Meeting</a>
       </div>
 
       <div class="topbar-user">
-        <span class="topbar-name" id="navDelegateName"></span>
+        <a class="topbar-name" id="navDelegateName" href="profile.html" title="Your profile"></a>
         <span class="topbar-country" id="navDelegateCountry"></span>
         <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
       </div>
@@ -50,10 +51,10 @@
       <div class="header-inner">
         <div>
           <p class="platform-name">BridgeMUN</p>
-          <h1 class="committee-name">Write a Post</h1>
+          <h1 class="committee-name" id="writeHeading">Write a Post</h1>
           <p class="committee-topic">
-            Draft resolutions, position papers, statements, and notices for the
-            <strong>United Nations Security Council</strong>.
+            Draft resolutions, position papers, statements, and notices on
+            <strong id="writeTopic"></strong>.
           </p>
         </div>
       </div>
@@ -63,7 +64,7 @@
 
       <section class="panel">
         <div class="panel-head">
-          <h2 class="panel-title">New Post</h2>
+          <h2 class="panel-title" id="writePanelTitle">New Post</h2>
           <span class="panel-count">Posting as <span id="composerWho"></span></span>
         </div>
 
@@ -81,7 +82,7 @@
             id="postTitle"
             type="text"
             maxlength="120"
-            placeholder="e.g. Draft Resolution 1.1 — Human Control Standards">
+            placeholder="e.g. Draft Resolution 1.1 — Age-Inclusive Digital Services">
 
           <label class="composer-label composer-label-block" for="postBody">Body</label>
           <textarea

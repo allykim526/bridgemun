@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <!--
-  board.html — the committee board
+  board.html — the home page
 
   What this page is:
-  The platform's home page once a delegate is signed in. It shows who is
-  seated in the committee, and every post made so far — newest first.
-  Clicking a post opens it on its own page (post.html). Writing a new
-  post happens on its own page too (write.html).
+  The first page a delegate sees once signed in, laid out like a forum
+  start screen: a header (logo, My meetings, your name, Log out); a large
+  centred title and intro with a "Create New Meeting" button; a list of the
+  meetings running right now, each with a Join button (or a note that none
+  are running); "My meetings" in the header opens the list of your meetings; and the
+  most recent results. "Create New Meeting" opens the Meeting Details popup
+  (subtopic, date, length, which countries take part and which of them the
+  AI plays) and then goes to debate.html, which turns into the live debate
+  once the meeting begins.
 
   Only reachable by a logged-in delegate. Behaviour lives in board.js.
 -->
@@ -14,7 +19,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BridgeMUN — Committee Board</title>
+  <title>BridgeMUN — Start</title>
   <!-- A heavy slab serif for titles only — see --font-official in
        style.css. Loaded from Google Fonts so it looks the same on
        every computer, not just ones with Rockwell installed. -->
@@ -27,87 +32,143 @@
 <!-- "is-loading" hides the page until we know who is logged in, so a
      logged-out visitor never glimpses the board before being sent to
      the login page. -->
-<body class="is-loading">
-  <div class="page">
+<body class="is-loading home-body">
 
-    <!-- TOP BAR — same on every page, so a delegate always knows who
-         they are signed in as and can move to the write page. -->
-    <nav class="topbar">
-      <span class="topbar-brand">BridgeMUN</span>
-
-      <div class="topbar-links">
-        <a class="topbar-link is-current" href="board.html">Board</a>
-        <a class="topbar-link" href="write.html">Write</a>
-      </div>
-
-      <div class="topbar-user">
-        <span class="topbar-name" id="navDelegateName"></span>
-        <span class="topbar-country" id="navDelegateCountry"></span>
-        <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
-      </div>
-    </nav>
-
-    <!-- PAGE HEADER — the committee, and the topic under debate. -->
-    <header class="committee-header">
-      <div class="header-inner">
-        <svg class="emblem" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-          <circle cx="32" cy="32" r="17" stroke="#c9a227" stroke-width="1.4"/>
-          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#c9a227" stroke-width="1.1"/>
-          <path d="M15 32h34M18 23h28M18 41h28" stroke="#c9a227" stroke-width="1.1"/>
-          <path d="M20 52a24 24 0 0 1-8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M44 52a24 24 0 0 0 8-19" stroke="#e6d08a" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- HEADER — logo, My meetings, who you are, Log out. -->
+  <header class="home-header">
+    <a class="home-brand" href="board.html">
+      <span class="home-logo">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" stroke="#e6d08a" stroke-width="3"/>
+          <ellipse cx="32" cy="32" rx="7.5" ry="17" stroke="#e6d08a" stroke-width="2.4"/>
+          <path d="M15 32h34M18 23h28M18 41h28" stroke="#e6d08a" stroke-width="2.4"/>
         </svg>
+      </span>
+      <span class="home-brand-name">BridgeMUN</span>
+    </a>
 
-        <div>
-          <p class="platform-name">BridgeMUN</p>
-          <h1 class="committee-name">United Nations Security Council</h1>
-          <p class="committee-topic"><strong>Topic:</strong> Regulation of Autonomous Weapons</p>
+    <nav class="home-nav">
+      <a class="home-nav-link" href="forums.html" id="myMeetingsLink">My meetings</a>
+      <a class="home-nav-link" href="write.html">Write</a>
+      <span class="home-user">
+        <a class="home-user-name" id="navDelegateName" href="profile.html" title="Your profile"></a>
+        <span class="topbar-country" id="navDelegateCountry"></span>
+      </span>
+      <button class="btn btn-quiet" id="navLogout" type="button">Log out</button>
+    </nav>
+  </header>
+
+  <main class="home-main">
+
+    <!-- INTRO — the big title, what this is, and the one main action. -->
+    <section class="home-hero">
+      <h1 class="home-title">Participate in Model UN Meetings</h1>
+      <p class="home-lead">
+        Join live diplomatic simulations. Represent countries, debate global
+        issues, and vote on resolutions in real time.
+      </p>
+      <p class="home-agenda">
+        <span class="home-agenda-label">Current agenda</span>
+        <span id="boardTopic"></span>
+      </p>
+      <p class="home-features">
+        Features: spoken or captioned debates, AI delegates that vote by
+        their country's researched position, and a full meeting log.
+      </p>
+      <button class="btn btn-primary home-create" id="createButton" type="button">+ Create New Meeting</button>
+    </section>
+
+    <!-- UPCOMING MEETINGS — every meeting running right now. -->
+    <section class="home-section">
+      <div class="home-section-head">
+        <h2 class="home-section-title">Upcoming Meetings</h2>
+        <span class="panel-count" id="liveCount"></span>
+      </div>
+      <ul class="home-list" id="liveList"></ul>
+    </section>
+
+    <!-- RECENT RESULTS — how the last meetings ended. -->
+    <section class="home-section">
+      <div class="home-section-head">
+        <h2 class="home-section-title">Recent Results</h2>
+      </div>
+      <ul class="home-list" id="sessionList"></ul>
+    </section>
+
+  </main>
+
+  <footer class="home-footer">BridgeMUN · Prototype</footer>
+
+  <!-- MEETING DETAILS — the popup. It opens over the home page (it is not
+       a page of its own): topic, optional subtopic, date, how long, how many
+       and which countries, and which of them the AI plays. "Save Meeting &
+       Continue" carries it all to the meeting screen. -->
+  <div class="modal-backdrop is-hidden" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createModalTitle">
+    <div class="modal-card modal-wide">
+      <div class="modal-head">
+        <h2 class="modal-title" id="createModalTitle">Meeting Details</h2>
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close">&times;</button>
+      </div>
+      <p class="modal-sub">Configure the basic settings for your meeting</p>
+
+      <label class="field">
+        <span class="field-label">Topic</span>
+        <input type="text" id="modalTopic" readonly>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Subtopic <em class="field-optional">optional</em></span>
+        <input type="text" id="modalSubtopic" maxlength="120" placeholder="e.g. Loneliness and lonely deaths">
+      </label>
+
+      <div class="modal-row">
+        <label class="field">
+          <span class="field-label">Date</span>
+          <input type="date" id="modalDate">
+        </label>
+        <div class="field">
+          <span class="field-label">Duration (min)</span>
+          <div class="seg" id="modalDuration">
+            <button type="button" class="seg-btn is-on" data-value="30">30 Min</button>
+            <button type="button" class="seg-btn" data-value="60">60 Min</button>
+          </div>
         </div>
       </div>
 
-      <div class="header-meta">
-        <span class="meta-item is-live"><span class="status-dot"></span> Live &mdash; Session in Progress</span>
-        <span class="meta-item" id="headerSeats"></span>
-      </div>
-    </header>
-
-    <div class="room">
-
-      <!-- ROSTER — every seat, and who holds it. Drawn by board.js. -->
-      <div class="roster-column">
-        <section class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">Delegates</h2>
-            <span class="panel-count" id="delegateCount"></span>
-          </div>
-          <ul class="delegate-list" id="delegateList"></ul>
-
-          <!-- The AI delegate's opening speech: one click posts it to
-               the board like any other delegate's post. -->
-          <div class="controls">
-            <button class="speech-button" id="aiSpeechButton" type="button">
-              Generate AI Opening Speech
-            </button>
-            <span class="controls-note">The AI delegate holds the United States seat.</span>
-          </div>
-        </section>
+      <div class="field">
+        <span class="field-label">Number of Participating Countries</span>
+        <div class="slider-row">
+          <span class="slider-end">Min 2</span>
+          <span class="slider-value" id="modalCountValue">5</span>
+          <span class="slider-end">Max 7</span>
+        </div>
+        <input type="range" id="modalCount" min="2" max="7" value="5">
+        <div class="seg" id="modalPresets">
+          <button type="button" class="seg-btn" data-value="3">3 Countries</button>
+          <button type="button" class="seg-btn" data-value="5">5 Countries</button>
+          <button type="button" class="seg-btn" data-value="7">All 7 Countries</button>
+        </div>
       </div>
 
-      <!-- THE POSTS THEMSELVES — newest first, drawn by board.js. -->
-      <div class="main-column">
-        <section class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">Posts</h2>
-            <span class="panel-count" id="postCount"></span>
-          </div>
-
-          <ul class="post-list" id="postList"></ul>
-        </section>
+      <div class="field">
+        <div class="country-head">
+          <span class="field-label">Countries <span class="country-count" id="modalCountries">(0/5)</span></span>
+          <button type="button" class="btn-link" id="modalRandom">Random</button>
+        </div>
+        <input type="search" id="modalSearch" placeholder="Search countries">
+        <p class="modal-hint is-hidden" id="modalMaxHint">Maximum countries reached</p>
+        <div class="country-chips" id="modalChips"></div>
+        <div class="ai-row">
+          <span class="ai-count" id="modalAiCount">AI enabled countries: 0/0</span>
+          <span>
+            <button type="button" class="btn-link" id="modalAiAllOn">ALL ON</button>
+            <button type="button" class="btn-link" id="modalAiAllOff">ALL OFF</button>
+          </span>
+        </div>
       </div>
 
+      <button class="btn btn-primary btn-block" id="modalCreate" type="button" disabled>Save Meeting &amp; Continue &rarr;</button>
     </div>
-
-    <p class="footnote">BridgeMUN · Prototype</p>
   </div>
 
   <script type="module" src="board.js"></script>
